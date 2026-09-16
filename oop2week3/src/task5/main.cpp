@@ -1,5 +1,4 @@
 // main.cpp — Time 클래스 사용(구현을 몰라도 헤더만 보고 사용)
-// 컴파일: g++ -std=c++17 main.cpp time2.cpp -o app
 #include <iostream>
 #include "time2.h"
 using namespace std;

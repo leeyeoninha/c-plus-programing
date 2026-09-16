@@ -1,7 +1,6 @@
 // time2.h — class Time 선언(인터페이스)
 // 멤버 함수 정의는 time2.cpp에 있습니다.
-#ifndef TIME2_H          // 헤더 중복 포함 방지
-#define TIME2_H
+#pragma once
 
 class Time {
 public:
@@ -15,5 +14,3 @@ private:
     int minute;  // 0-59
     int second;  // 0-59
 };
-
-#endif

@@ -324,7 +324,6 @@ which is 1:27:06 PM standard time.
 
 [검증 없음] 잘못된 값 29시 73분을 그대로 대입합니다.
 Time with invalid values: 29:73:06</pre>
-      <p class="score"><b>채점 포인트 (5점)</b> · struct 선언과 점(.) 연산자 접근 1 · setfill/setw로 두 자리 0 채움 1 · 0시·12시 경계 처리 1 · const 레퍼런스 전달 1 · 「멤버가 public이라 잘못된 값이 그대로 들어간다」는 결론 서술 1</p>
       <details class="reveal">
         <summary>모범 답안 보기</summary>
         <div class="answer">
@@ -398,7 +397,6 @@ The initial standard time is 12:00:00 AM
 시, 분, 초를 입력하세요: <span class="in">-24 30 0</span>
 Universal time after setTime is 00:30:00
 Standard time after setTime is 12:30:00 AM</pre>
-      <p class="score"><b>채점 포인트 (7점)</b> · private 멤버로 데이터 은닉 2 · 생성자가 객체를 일관된 상태로 초기화 1 · 멤버별 독립 유효성 검사(예시 ③처럼 분만 0이 되어야 함) 2 · <code>::</code>를 사용한 클래스 밖 멤버 함수 정의 1 · 과제 1과 비교해 무엇이 좋아졌는지 서술 1</p>
       <details class="reveal">
         <summary>모범 답안 보기</summary>
         <div class="answer">
@@ -473,7 +471,6 @@ counter.getX()      = 3
 counterRef.getX()   = 3
 counterPtr-&gt;getX()  = 3
 (*counterPtr).getX()= 3</pre>
-      <p class="score"><b>채점 포인트 (5점)</b> · 포인터·레퍼런스 선언과 초기화 1 · 점(.)과 화살표(-&gt;)의 올바른 사용 2 · <code>(*p).x</code>에 괄호가 필요한 이유 설명 1 · 세 핸들이 동일 객체의 별칭임을 출력으로 입증 1</p>
       <details class="reveal">
         <summary>모범 답안 보기</summary>
         <div class="answer">
@@ -546,7 +543,6 @@ Object 2   destructor runs    (local automatic in main)
 Object 6   destructor runs    (local static in create)
 Object 3   destructor runs    (local static in main)
 Object 1   destructor runs    (global before main)</pre>
-      <p class="score"><b>채점 포인트 (7점)</b> · 생성자·소멸자 메시지 출력 1 · 요구된 7개 객체의 저장 기간 배치 2 · 자동 지역 객체의 역순 소멸 1 · static은 한 번만 생성되고 main 종료 후 소멸함을 출력으로 입증 2 · 출력 순서에 대한 설명 서술 1</p>
       <details class="reveal">
         <summary>모범 답안 보기</summary>
         <div class="answer">
@@ -603,7 +599,7 @@ void create() {
     <div class="icard">
       <div class="itag">과제 5 · [난이도 상] 인터페이스와 구현 분리 + 기본 인자 생성자</div>
       <p class="desc"><code>class Time</code>을 <code>time2.h</code>(선언) / <code>time2.cpp</code>(정의) / <code>main.cpp</code>(사용) 세 파일로 분리합니다. 생성자에 기본 인자를 주어 인자 0~3개로 모두 생성되게 하고, 생성자가 <code>setTime</code>을 재사용해 유효성 검사까지 처리하도록 만들어 보세요.</p>
-      <p class="cond">조건: <code>time2.h</code>에 <code>#ifndef TIME2_H / #define TIME2_H / #endif</code> 헤더 가드와 클래스 선언·함수 원형만 작성 · 생성자 원형은 <code>Time(int = 0, int = 0, int = 0);</code>이며 <b>기본 인자는 헤더에만</b> 씁니다 · <code>time2.cpp</code>의 생성자는 검증 로직을 중복 작성하지 말고 <code>setTime(h, m, s)</code>를 호출 · 생성자와 소멸자가 각각 [생성] / [소멸] 메시지와 시각을 출력 · <code>main.cpp</code>는 <code>#include "time2.h"</code>만 하고 구현을 전혀 모른 채 사용 · 객체 포인터 배열로 5개 객체를 순회 출력 · 컴파일 명령을 주석으로 남길 것: <code>g++ -std=c++17 main.cpp time2.cpp -o app</code></p>
+      <p class="cond">조건: <code>time2.h</code>에는 클래스 선언과 함수 원형만 작성 · 생성자 원형은 <code>Time(int = 0, int = 0, int = 0);</code>이며 <b>기본 인자는 헤더에만</b> 씁니다 · <code>time2.cpp</code>의 생성자는 검증 로직을 중복 작성하지 말고 <code>setTime(h, m, s)</code>를 호출 · 생성자와 소멸자가 각각 [생성] / [소멸] 메시지와 시각을 출력 · <code>main.cpp</code>는 <code>#include "time2.h"</code>만 하고 구현을 전혀 모른 채 사용 · 객체 포인터 배열로 5개 객체를 순회 출력</p>
 <p class="runlabel">실행 예시 — 입력 없음 (전체 출력)</p><pre class="run">--- 기본 인자 생성자 4가지 호출 ---
 [생성] 00:00:00 객체가 만들어졌습니다.
 [생성] 02:00:00 객체가 만들어졌습니다.
@@ -628,16 +624,13 @@ t1 변경 후 : 13:27:06  |  1:27:06 PM
 [소멸] 12:25:42 객체가 소멸됩니다.
 [소멸] 21:34:00 객체가 소멸됩니다.
 [소멸] 02:00:00 객체가 소멸됩니다.
-[소멸] 13:27:06 객체가 소멸됩니다.</pre><p class="runlabel">컴파일 명령</p><pre class="run">$ g++ -std=c++17 main.cpp time2.cpp -o app
-$ ./app</pre>
-      <p class="score"><b>채점 포인트 (10점)</b> · 3파일 분리와 헤더 가드 2 · 기본 인자를 헤더에만 선언 1 · 생성자가 <code>setTime</code>을 재사용 2 · <code>::</code>로 클래스 밖 멤버 함수 정의 1 · main이 구현을 몰라도 컴파일·동작 1 · 인자 0~3개의 네 가지 생성자 호출을 모두 시연 2 · 다중 파일 컴파일 성공 1</p>
+[소멸] 13:27:06 객체가 소멸됩니다.</pre>
       <details class="reveal">
         <summary>모범 답안 보기</summary>
         <div class="answer">
 <p class="runlabel">// time2.h — 인터페이스</p><pre>// time2.h — class Time 선언(인터페이스)
 // 멤버 함수 정의는 time2.cpp에 있습니다.
-#ifndef TIME2_H          // 헤더 중복 포함 방지
-#define TIME2_H
+#pragma once
 
 class Time {
 public:
@@ -650,9 +643,7 @@ private:
     int hour;    // 0-23
     int minute;  // 0-59
     int second;  // 0-59
-};
-
-#endif</pre><p class="runlabel">// time2.cpp — 구현</p><pre>// time2.cpp — class Time의 멤버 함수 정의(구현)
+};</pre><p class="runlabel">// time2.cpp — 구현</p><pre>// time2.cpp — class Time의 멤버 함수 정의(구현)
 #include &lt;iostream&gt;
 #include &lt;iomanip&gt;
 #include "time2.h"
@@ -689,7 +680,6 @@ void Time::printStandard() const {
          &lt;&lt; ":" &lt;&lt; setw(2) &lt;&lt; second
          &lt;&lt; (hour &lt; 12 ? " AM" : " PM");
 }</pre><p class="runlabel">// main.cpp — 사용</p><pre>// main.cpp — Time 클래스 사용(구현을 몰라도 헤더만 보고 사용)
-// 컴파일: g++ -std=c++17 main.cpp time2.cpp -o app
 #include &lt;iostream&gt;
 #include "time2.h"
 using namespace std;
@@ -734,7 +724,7 @@ int main() {
 
 <footer>
   이지스퍼블리싱 「Do it! C++」 06장(객체지향 프로그래밍과 클래스)과 Deitel 「C++ How to Program」 6장(Classes and Data Abstraction) 학습 확인용 자료입니다.
-  실습과제의 모든 실행 예시는 <code>g++ -std=c++17</code>로 컴파일·실행한 실제 출력입니다. 상속·가상 함수·다형성의 구현과 동적 메모리 할당(new/delete)은 이번 주 학습 범위에 포함되지 않습니다.
+  실습과제의 모든 실행 예시는 실제로 컴파일·실행한 출력입니다. 상속·가상 함수·다형성의 구현과 동적 메모리 할당(new/delete)은 이번 주 학습 범위에 포함되지 않습니다.
 </footer>
 
 <script>
@@ -841,15 +831,15 @@ const questions = [
   },
   {
     "prompt": "다음은 인터페이스와 구현을 분리한 클래스입니다. 파일 구성에 대한 설명으로 옳은 것은?",
-    "code": "// time1.h\n#ifndef TIME1_H\n#define TIME1_H\nclass Time {\npublic:\n    Time();\n    void setTime(int, int, int);\nprivate:\n    int hour, minute, second;\n};\n#endif\n\n// time1.cpp\n#include \"time1.h\"\nTime::Time() { hour = minute = second = 0; }",
+    "code": "// Time.h\n#pragma once\nclass Time {\npublic:\n    Time();\n    void setTime(int, int, int);\nprivate:\n    int hour, minute, second;\n};\n\n// Time.cpp\n#include \"Time.h\"\nTime::Time() { hour = minute = second = 0; }",
     "options": [
       "헤더 파일(.h)에는 멤버 함수의 본문까지 모두 작성해야 한다",
-      "#ifndef / #define은 컴파일 속도를 높이기 위한 선택 사항이다",
+      "Time.cpp에서 멤버 함수를 정의할 때는 클래스 이름을 쓰지 않아도 된다",
       "클래스를 두 파일로 나누면 다른 파일에서 그 클래스를 사용할 수 없다",
       "헤더 파일에는 클래스 선언과 함수 원형을, 소스 파일에는 범위 지정 연산자 ::를 사용해 멤버 함수를 정의한다"
     ],
     "correct": 3,
-    "explanation": "헤더 파일에는 클래스 정의와 함수 원형만 두고, 소스 파일에서 범위 지정 연산자(::)로 '반환형 클래스이름::함수이름()' 형태의 멤버 함수를 정의합니다. 사용자는 헤더만 보고 '무엇을 할 수 있는가'를 알 수 있고 '어떻게 하는가'는 몰라도 되므로 프로그램을 수정하기 쉬워집니다. #ifndef / #define / #endif는 헤더가 여러 번 포함되는 것을 막는 헤더 가드로, 없으면 클래스 재정의 오류가 발생합니다."
+    "explanation": "헤더 파일에는 클래스 정의와 함수 원형만 두고, 소스 파일에서 범위 지정 연산자(::)로 '반환형 클래스이름::함수이름()' 형태의 멤버 함수를 정의합니다. 클래스 이름을 네임스페이스로 붙여야 컴파일러가 그 함수가 어떤 클래스에 속하는지 알 수 있으므로, 서로 다른 클래스가 같은 이름의 멤버 함수를 가질 수 있습니다. 사용자는 헤더만 보고 '무엇을 할 수 있는가'를 알 수 있고 '어떻게 하는가'는 몰라도 되므로 프로그램을 수정하기 쉬워집니다."
   }
 ];
 
@@ -878,7 +868,7 @@ const debugProblems = [
       11,
       12
     ],
-    "answer": "class는 접근 지정자를 생략하면 <b>기본이 private</b>이므로 <code>hour</code>는 클래스 밖에서 접근할 수 없습니다. g++는 <code>error: 'int Time::hour' is private within this context</code>, MSVC는 <code>error C2248: 'hour' : cannot access private member declared in class 'Time'</code>를 출력합니다. 해결 방법은 접근 함수(accessor)를 경유하는 것입니다 — 쓰기는 <code>setHour()</code>, 읽기는 <code>getHour()</code>처럼 public 멤버 함수를 두고, 그 안에서 유효성 검사까지 수행하게 만드는 것이 캡슐화의 핵심입니다."
+    "answer": "class는 접근 지정자를 생략하면 <b>기본이 private</b>이므로 <code>hour</code>는 클래스 밖에서 접근할 수 없습니다. 컴파일러는 <code>error C2248: 'hour' : cannot access private member declared in class 'Time'</code>를 출력합니다. 해결 방법은 접근 함수(accessor)를 경유하는 것입니다 — 쓰기는 <code>setHour()</code>, 읽기는 <code>getHour()</code>처럼 public 멤버 함수를 두고, 그 안에서 유효성 검사까지 수행하게 만드는 것이 캡슐화의 핵심입니다."
   },
   {
     "title": "문제 2 · 컴파일 오류 찾기",

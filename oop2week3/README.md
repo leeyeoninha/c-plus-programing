@@ -17,12 +17,7 @@
 
 상속·가상 함수·다형성의 구현과 동적 메모리 할당(new/delete)은 이번 주 범위에서 제외했습니다.
 
-## 컴파일 확인
-```
-g++ -std=c++17 src/task1_struct_time.cpp -o t1
-g++ -std=c++17 src/task2_class_time.cpp -o t2
-g++ -std=c++17 src/task3_member_access.cpp -o t3
-g++ -std=c++17 src/task4_create_destroy.cpp -o t4
-g++ -std=c++17 src/task5/main.cpp src/task5/time2.cpp -o t5
-```
-페이지의 모든 실행 예시는 위 명령으로 실제 실행한 출력입니다.
+## 빌드 환경
+Visual Studio에서 빈 프로젝트를 만들고 소스 파일을 추가해 빌드합니다.
+과제 5는 `time2.h`, `time2.cpp`, `main.cpp` 세 파일을 한 프로젝트에 함께 넣고 빌드하세요.
+페이지의 모든 실행 예시는 실제로 컴파일·실행한 출력입니다.
