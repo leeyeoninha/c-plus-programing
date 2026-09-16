@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ 06장 · 클래스와 객체 — 확인 학습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10131a;
+    --bg-raise: #171b24;
+    --bg-card: #1c212c;
+    --line: #2a3040;
+    --ink: #e7e9ee;
+    --ink-dim: #8b93a7;
+    --amber: #f2b84b;
+    --amber-dim: #7a611f;
+    --mint: #7fd8a6;
+    --mint-dim: #234433;
+    --coral: #e8836e;
+    --coral-dim: #472a24;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, #1a2130 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height:1.6;
+    padding: 0 0 96px;
+  }
+  a{ color: var(--amber); }
+
+  /* ---------- window chrome ---------- */
+  .titlebar{
+    display:flex; align-items:center; gap:8px;
+    padding: 12px 20px;
+    background: var(--bg-raise);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index: 20;
+  }
+  .dot{ width:11px; height:11px; border-radius:50%; }
+  .dot.r{ background:#e8836e55; border:1px solid #e8836e; }
+  .dot.y{ background:#f2b84b55; border:1px solid #f2b84b; }
+  .dot.g{ background:#7fd8a655; border:1px solid #7fd8a6; }
+  .filename{
+    margin-left: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .score-pill{
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 5px 12px;
+    border-radius: 100px;
+  }
+  .score-pill.done{ color: var(--mint); border-color: var(--mint-dim); }
+
+  /* ---------- header / hero ---------- */
+  header.hero{
+    max-width: 760px; margin: 0 auto;
+    padding: 56px 24px 40px;
+  }
+  .eyebrow-line{
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    margin: 0 0 14px;
+  }
+  header.hero h1{
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.25;
+    margin: 0 0 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.hero p{
+    color: var(--ink-dim);
+    font-size: 16px;
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  main{ max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  section.block{ margin: 48px 0; }
+  .block-head{
+    display:flex; align-items:baseline; gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .block-head .idx{
+    font-family: var(--mono); color: var(--amber); font-size: 14px;
+  }
+  .block-head h2{ font-size: 20px; margin:0; font-weight: 700; }
+
+  /* ---------- quiz card ---------- */
+  .qcard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 22px 20px;
+    margin-bottom: 16px;
+    transition: border-color .2s ease;
+  }
+  .qcard .qtag{
+    font-family: var(--mono); font-size: 12px; color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  .qcard p.prompt{
+    margin: 0 0 16px;
+    font-size: 15.5px;
+    white-space: pre-wrap;
+  }
+  .prompt code, pre.snippet{
+    font-family: var(--mono);
+    font-size: 13.5px;
+  }
+  pre.snippet{
+    background: #0d0f15;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 10px 0 16px;
+    color: #cdd3e0;
+  }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt{
+    display:flex; align-items:flex-start; gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14.5px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .opt:hover{ border-color: #3a4257; background: #20263300; }
+  .opt input{ margin-top: 3px; accent-color: var(--amber); }
+  .qcard.correct{ border-color: var(--mint-dim); background: linear-gradient(180deg, #16241c 0%, var(--bg-card) 60px); }
+  .qcard.incorrect{ border-color: var(--coral-dim); background: linear-gradient(180deg, #241a18 0%, var(--bg-card) 60px); }
+  .opt.mark-correct{ border-color: var(--mint); background: #16281f; }
+  .opt.mark-wrong{ border-color: var(--coral); background: #2a1a17; }
+  .feedback{
+    display:none;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-size: 14px; color: var(--ink-dim);
+  }
+  .feedback .verdict{
+    font-family: var(--mono); font-weight:700; font-size: 13px;
+    display:inline-block; margin-bottom: 6px;
+  }
+  .qcard.correct .feedback .verdict{ color: var(--mint); }
+  .qcard.incorrect .feedback .verdict{ color: var(--coral); }
+  .qcard.graded .feedback{ display:block; }
+  .qcard.graded .opt{ pointer-events: none; }
+
+  /* ---------- submit / summary ---------- */
+  .grade-bar{
+    display:flex; justify-content:center; margin: 32px 0 8px;
+  }
+  #gradeBtn{
+    font-family: var(--mono); font-size: 14px; font-weight:700;
+    color: #10131a; background: var(--amber);
+    border:none; padding: 13px 28px; border-radius: 8px;
+    cursor:pointer;
+    box-shadow: 0 0 0 1px var(--amber-dim);
+  }
+  #gradeBtn:hover{ filter: brightness(1.07); }
+  #gradeBtn:disabled{ opacity:.5; cursor:not-allowed; }
+  .summary{
+    display:none;
+    text-align:center; font-family: var(--mono);
+    color: var(--ink-dim); font-size: 13px; margin-top: 10px;
+  }
+
+  /* ---------- debug / impl problem cards ---------- */
+  .dcard, .icard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .dcard .dtag{
+    font-family: var(--mono); font-size: 12px; color: var(--coral); margin-bottom: 10px;
+  }
+  .icard .itag{
+    font-family: var(--mono); font-size: 12px; color: var(--mint); margin-bottom: 10px;
+  }
+  .dcard p.desc, .icard p.desc{ margin: 0 0 14px; color: var(--ink-dim); font-size: 14.5px; }
+  .icard p.cond{ margin: 0 0 14px; font-size: 14px; color: var(--ink); }
+  .icard p.cond code{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+    color: var(--amber);
+  }
+  .linehl{ background:#472a2455; border-left: 2px solid var(--coral); display:block; margin: 0 -16px; padding: 0 16px 0 14px; }
+  details.reveal{
+    margin-top: 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+  }
+  details.reveal summary{
+    cursor:pointer;
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    list-style: none;
+  }
+  details.reveal summary::-webkit-details-marker{ display:none; }
+  details.reveal summary::before{ content: "▸ "; }
+  details.reveal[open] summary::before{ content: "▾ "; }
+  details.reveal .answer{
+    margin-top: 12px; font-size: 14.5px; color: var(--ink);
+  }
+  details.reveal .answer code, details.reveal .answer pre{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+  }
+  details.reveal .answer pre{
+    display:block; padding: 14px 16px; overflow-x:auto;
+    color: #cdd3e0; line-height: 1.55;
+  }
+  details.reveal .hint-note{
+    margin-top: 10px; font-size: 13.5px; color: var(--ink-dim);
+  }
+
+  footer{
+    max-width: 760px; margin: 40px auto 0; padding: 24px;
+    color: var(--ink-dim); font-size: 13px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- run example (week3) ---------- */
+  .runlabel{
+    font-family: var(--mono); font-size: 12.5px; color: var(--mint);
+    margin: 16px 0 6px;
+  }
+  pre.run{
+    background:#0d0f15;
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--mint);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 0 0 6px;
+    color:#cdd3e0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre.run .in{ color: var(--amber); font-weight: 700; }
+  .icard p.score{
+    margin: 14px 0 0; font-size: 13.5px; color: var(--ink-dim);
+    border-top: 1px dashed var(--line); padding-top: 12px;
+  }
+  .icard p.score b{ color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+  <span class="filename">chapter06_review.cpp</span>
+  <span class="score-pill" id="scorePill">0 / 10 채점됨</span>
+</div>
+
+<header class="hero">
+  <p class="eyebrow-line">// Do it! C++ &nbsp;·&nbsp; 06장 &nbsp;+&nbsp; C++ How to Program &nbsp;·&nbsp; 6장</p>
+  <h1>클래스와 객체 확인 학습</h1>
+  <p>프로그래밍 패러다임과 객체지향 4대 특징, 클래스와 인스턴스, struct에서 class로, 멤버 접근과 접근 지정자, 생성자·소멸자, 인터페이스와 구현 분리까지 — 이번 주 학습 내용(객체 리뷰 3·4)을 퀴즈와 디버깅 문제, 직접 구현 과제로 점검해 보세요.</p>
+</header>
+
+<main>
+  <section class="block" id="quiz-block">
+    <div class="block-head">
+      <span class="idx">01</span>
+      <h2>이해도 점검 퀴즈</h2>
+    </div>
+    <div id="quizList"></div>
+    <div class="grade-bar"><button id="gradeBtn">채점하기</button></div>
+    <p class="summary" id="summary"></p>
+  </section>
+
+  <section class="block" id="debug-block">
+    <div class="block-head">
+      <span class="idx">02</span>
+      <h2>코드 오류 찾기</h2>
+    </div>
+    <div id="debugList"></div>
+  </section>
+
+  <section class="block" id="impl-block">
+    <div class="block-head">
+      <span class="idx">03</span>
+      <h2>직접 구현해 보기</h2>
+    </div>
+
+    <div class="icard">
+      <div class="itag">과제 1 · [난이도 하] struct Time — 멤버 직접 접근이 위험한 이유</div>
+      <p class="desc">교재의 <code>struct Time</code>(멤버: <code>hour</code>, <code>minute</code>, <code>second</code>)을 그대로 선언하고, 입력받은 시각을 24시간 형식과 12시간 형식으로 출력해 보세요. 그 뒤 검증 없이 잘못된 값을 대입해 구조체의 한계를 눈으로 확인합니다.</p>
+      <p class="cond">조건: 멤버는 <code>hour</code>, <code>minute</code>, <code>second</code> 세 개 · <code>printUniversal(const Time &amp;)</code>은 <code>setfill('0')</code>, <code>setw(2)</code>로 <code>00:00:00</code> 형식 출력 · <code>printStandard(const Time &amp;)</code>은 0시와 12시를 12로, 12시 미만은 AM, 이상은 PM으로 출력 · 두 함수 모두 <b>const 레퍼런스 매개변수</b> · 마지막에 <code>hour = 29</code>, <code>minute = 73</code>을 대입해 다시 출력</p>
+<p class="runlabel">실행 예시 ① — 정상 값(오후)</p><pre class="run">시, 분, 초를 입력하세요: <span class="in">18 30 0</span>
+Dinner will be held at 18:30:00 universal time,
+which is 6:30:00 PM standard time.
+
+[검증 없음] 잘못된 값 29시 73분을 그대로 대입합니다.
+Time with invalid values: 29:73:00</pre><p class="runlabel">실행 예시 ② — 자정 직후(12 / AM 처리 확인)</p><pre class="run">시, 분, 초를 입력하세요: <span class="in">0 5 9</span>
+Dinner will be held at 00:05:09 universal time,
+which is 12:05:09 AM standard time.
+
+[검증 없음] 잘못된 값 29시 73분을 그대로 대입합니다.
+Time with invalid values: 29:73:09</pre><p class="runlabel">실행 예시 ③ — 13시(PM 환산 확인)</p><pre class="run">시, 분, 초를 입력하세요: <span class="in">13 27 6</span>
+Dinner will be held at 13:27:06 universal time,
+which is 1:27:06 PM standard time.
+
+[검증 없음] 잘못된 값 29시 73분을 그대로 대입합니다.
+Time with invalid values: 29:73:06</pre>
+      <p class="score"><b>채점 포인트 (5점)</b> · struct 선언과 점(.) 연산자 접근 1 · setfill/setw로 두 자리 0 채움 1 · 0시·12시 경계 처리 1 · const 레퍼런스 전달 1 · 「멤버가 public이라 잘못된 값이 그대로 들어간다」는 결론 서술 1</p>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 과제 1 (하) · struct Time — 멤버 직접 접근의 위험
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+using namespace std;
+
+struct Time {           // 구조체 태그
+    int hour;           // 0-23
+    int minute;         // 0-59
+    int second;         // 0-59
+};
+
+void printUniversal(const Time &amp;t) {
+    cout &lt;&lt; setfill('0') &lt;&lt; setw(2) &lt;&lt; t.hour &lt;&lt; ":"
+         &lt;&lt; setw(2) &lt;&lt; t.minute &lt;&lt; ":" &lt;&lt; setw(2) &lt;&lt; t.second;
+}
+void printStandard(const Time &amp;t) {
+    cout &lt;&lt; ((t.hour == 0 || t.hour == 12) ? 12 : t.hour % 12)
+         &lt;&lt; ":" &lt;&lt; setfill('0') &lt;&lt; setw(2) &lt;&lt; t.minute
+         &lt;&lt; ":" &lt;&lt; setw(2) &lt;&lt; t.second
+         &lt;&lt; (t.hour &lt; 12 ? " AM" : " PM");
+}
+
+int main() {
+    Time dinnerTime;
+    cout &lt;&lt; "시, 분, 초를 입력하세요: ";
+    cin &gt;&gt; dinnerTime.hour &gt;&gt; dinnerTime.minute &gt;&gt; dinnerTime.second;
+
+    cout &lt;&lt; "Dinner will be held at ";
+    printUniversal(dinnerTime);
+    cout &lt;&lt; " universal time,\nwhich is ";
+    printStandard(dinnerTime);
+    cout &lt;&lt; " standard time.\n";
+
+    cout &lt;&lt; "\n[검증 없음] 잘못된 값 29시 73분을 그대로 대입합니다.\n";
+    dinnerTime.hour = 29;
+    dinnerTime.minute = 73;
+    cout &lt;&lt; "Time with invalid values: ";
+    printUniversal(dinnerTime);
+    cout &lt;&lt; endl;
+    return 0;
+}</pre>
+          <p class="hint-note">노란색으로 표시된 부분이 학생이 입력하는 값입니다. 마지막 출력에서 29시 73분이 아무 저항 없이 저장되는 것에 주목하세요 — 멤버가 public이면 <b>객체 스스로 잘못된 상태를 막을 방법이 없습니다</b>. 과제 2에서 이 문제를 class로 해결합니다.</p>
+        </div>
+      </details>
+    </div>
+    <div class="icard">
+      <div class="itag">과제 2 · [난이도 중] class Time — 캡슐화와 유효성 검사</div>
+      <p class="desc">과제 1의 구조체를 클래스로 바꿉니다. <code>hour</code>, <code>minute</code>, <code>second</code>를 private으로 감추고, 기본 생성자가 0으로 초기화하며, <code>setTime()</code>이 범위를 벗어난 값을 0으로 만들어 잘못된 상태를 원천 차단하도록 만들어 보세요.</p>
+      <p class="cond">조건: 멤버 변수는 <b>private</b>, 생성자·<code>setTime</code>·<code>printUniversal</code>·<code>printStandard</code>는 <b>public</b> · 생성자에서 <code>hour = minute = second = 0;</code>으로 일관된 초기 상태 보장 · <code>setTime</code>은 삼항 연산자로 시 0~23, 분 0~59, 초 0~59를 검사하고 벗어나면 <b>해당 멤버만</b> 0 · 멤버 함수는 클래스 밖에서 <code>void Time::setTime(int, int, int)</code> 형태로 정의 · 출력 함수는 <code>const</code> 멤버 함수</p>
+<p class="runlabel">실행 예시 ① — 정상 값</p><pre class="run">The initial universal time is 00:00:00
+The initial standard time is 12:00:00 AM
+
+시, 분, 초를 입력하세요: <span class="in">13 27 6</span>
+Universal time after setTime is 13:27:06
+Standard time after setTime is 1:27:06 PM</pre><p class="runlabel">실행 예시 ② — 전부 범위 밖(모두 0으로)</p><pre class="run">The initial universal time is 00:00:00
+The initial standard time is 12:00:00 AM
+
+시, 분, 초를 입력하세요: <span class="in">99 99 99</span>
+Universal time after setTime is 00:00:00
+Standard time after setTime is 12:00:00 AM</pre><p class="runlabel">실행 예시 ③ — 분만 범위 밖(분만 0, 시·초는 유지)</p><pre class="run">The initial universal time is 00:00:00
+The initial standard time is 12:00:00 AM
+
+시, 분, 초를 입력하세요: <span class="in">10 70 30</span>
+Universal time after setTime is 10:00:30
+Standard time after setTime is 10:00:30 AM</pre><p class="runlabel">실행 예시 ④ — 음수 입력</p><pre class="run">The initial universal time is 00:00:00
+The initial standard time is 12:00:00 AM
+
+시, 분, 초를 입력하세요: <span class="in">-24 30 0</span>
+Universal time after setTime is 00:30:00
+Standard time after setTime is 12:30:00 AM</pre>
+      <p class="score"><b>채점 포인트 (7점)</b> · private 멤버로 데이터 은닉 2 · 생성자가 객체를 일관된 상태로 초기화 1 · 멤버별 독립 유효성 검사(예시 ③처럼 분만 0이 되어야 함) 2 · <code>::</code>를 사용한 클래스 밖 멤버 함수 정의 1 · 과제 1과 비교해 무엇이 좋아졌는지 서술 1</p>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 과제 2 (중) · class Time — 캡슐화와 유효성 검사
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+using namespace std;
+
+class Time {
+public:
+    Time();                               // 생성자
+    void setTime(int, int, int);          // 유효성 검사 포함
+    void printUniversal() const;
+    void printStandard() const;
+private:
+    int hour;    // 0-23
+    int minute;  // 0-59
+    int second;  // 0-59
+};
+
+Time::Time() { hour = minute = second = 0; }
+
+void Time::setTime(int h, int m, int s) {
+    hour   = (h &gt;= 0 &amp;&amp; h &lt; 24) ? h : 0;
+    minute = (m &gt;= 0 &amp;&amp; m &lt; 60) ? m : 0;
+    second = (s &gt;= 0 &amp;&amp; s &lt; 60) ? s : 0;
+}
+void Time::printUniversal() const {
+    cout &lt;&lt; setfill('0') &lt;&lt; setw(2) &lt;&lt; hour &lt;&lt; ":"
+         &lt;&lt; setw(2) &lt;&lt; minute &lt;&lt; ":" &lt;&lt; setw(2) &lt;&lt; second;
+}
+void Time::printStandard() const {
+    cout &lt;&lt; ((hour == 0 || hour == 12) ? 12 : hour % 12)
+         &lt;&lt; ":" &lt;&lt; setfill('0') &lt;&lt; setw(2) &lt;&lt; minute
+         &lt;&lt; ":" &lt;&lt; setw(2) &lt;&lt; second
+         &lt;&lt; (hour &lt; 12 ? " AM" : " PM");
+}
+
+int main() {
+    Time t;
+    cout &lt;&lt; "The initial universal time is ";
+    t.printUniversal();
+    cout &lt;&lt; "\nThe initial standard time is ";
+    t.printStandard();
+
+    int h, m, s;
+    cout &lt;&lt; "\n\n시, 분, 초를 입력하세요: ";
+    cin &gt;&gt; h &gt;&gt; m &gt;&gt; s;
+    t.setTime(h, m, s);
+
+    cout &lt;&lt; "Universal time after setTime is ";
+    t.printUniversal();
+    cout &lt;&lt; "\nStandard time after setTime is ";
+    t.printStandard();
+    cout &lt;&lt; endl;
+    return 0;
+}</pre>
+          <p class="hint-note">실행 예시 ③이 핵심입니다. 시(10)와 초(30)는 살아 있고 범위를 벗어난 분만 0이 되었습니다 — 검사를 멤버별로 따로 하고 있기 때문입니다. 과제 1과 달리 이제 <b>객체 외부에서는 절대로 잘못된 시각을 만들 수 없습니다</b>.</p>
+        </div>
+      </details>
+    </div>
+    <div class="icard">
+      <div class="itag">과제 3 · [난이도 중] 객체 이름 · 레퍼런스 · 포인터로 멤버 접근하기</div>
+      <p class="desc">교재는 접근 연산자를 보여주기 위해 멤버 <code>x</code>를 public으로 두고 「IN FUTURE EXAMPLES WE AVOID PUBLIC DATA!」라고 경고합니다. 이 과제에서는 <code>x</code>를 private으로 되돌리고 get/set 함수를 경유해 같은 실험을 다시 해 봅니다.</p>
+      <p class="cond">조건: <code>class Count</code>의 <code>x</code>는 <b>private</b>, <code>setX(int)</code> / <code>getX() const</code> / <code>print() const</code>는 public · main에서 객체 <code>counter</code>, 포인터 <code>counterPtr</code>, 레퍼런스 <code>counterRef</code>를 각각 선언 · 세 핸들로 각각 1, 2, 3을 설정하고 그때마다 출력 · 마지막에 세 핸들로 값을 다시 읽어 같은 객체임을 확인 · <code>(*counterPtr).getX()</code> 형태도 함께 출력</p>
+<p class="runlabel">실행 예시 — 입력 없음</p><pre class="run">Assign 1 to x and print using the object's name: 1
+Assign 2 to x and print using a reference: 2
+Assign 3 to x and print using a pointer: 3
+
+세 핸들이 같은 객체를 가리키는지 확인
+counter.getX()      = 3
+counterRef.getX()   = 3
+counterPtr-&gt;getX()  = 3
+(*counterPtr).getX()= 3</pre>
+      <p class="score"><b>채점 포인트 (5점)</b> · 포인터·레퍼런스 선언과 초기화 1 · 점(.)과 화살표(-&gt;)의 올바른 사용 2 · <code>(*p).x</code>에 괄호가 필요한 이유 설명 1 · 세 핸들이 동일 객체의 별칭임을 출력으로 입증 1</p>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 과제 3 (중) · 객체 이름 / 레퍼런스 / 포인터로 멤버 접근하기
+#include &lt;iostream&gt;
+using namespace std;
+
+class Count {
+public:
+    void setX(int _x) { x = _x; }   // set 함수
+    int  getX() const { return x; } // get 함수
+    void print() const { cout &lt;&lt; x &lt;&lt; endl; }
+private:
+    int x = 0;                      // 기본 private
+};
+
+int main() {
+    Count counter;
+    Count *counterPtr = &amp;counter;   // 포인터
+    Count &amp;counterRef = counter;    // 레퍼런스
+
+    cout &lt;&lt; "Assign 1 to x and print using the object's name: ";
+    counter.setX(1);
+    counter.print();
+
+    cout &lt;&lt; "Assign 2 to x and print using a reference: ";
+    counterRef.setX(2);
+    counterRef.print();
+
+    cout &lt;&lt; "Assign 3 to x and print using a pointer: ";
+    counterPtr-&gt;setX(3);
+    counterPtr-&gt;print();
+
+    cout &lt;&lt; "\n세 핸들이 같은 객체를 가리키는지 확인\n";
+    cout &lt;&lt; "counter.getX()      = " &lt;&lt; counter.getX() &lt;&lt; endl;
+    cout &lt;&lt; "counterRef.getX()   = " &lt;&lt; counterRef.getX() &lt;&lt; endl;
+    cout &lt;&lt; "counterPtr-&gt;getX()  = " &lt;&lt; counterPtr-&gt;getX() &lt;&lt; endl;
+    cout &lt;&lt; "(*counterPtr).getX()= " &lt;&lt; (*counterPtr).getX() &lt;&lt; endl;
+    return 0;
+}</pre>
+          <p class="hint-note">마지막 네 줄이 모두 <code>3</code>인 것이 이 과제의 결론입니다. 객체 이름, 레퍼런스, 포인터는 <b>서로 다른 세 개의 객체가 아니라 같은 객체를 가리키는 세 개의 핸들</b>입니다. <code>counterPtr->getX()</code>와 <code>(*counterPtr).getX()</code>는 완전히 같은 표현이며, <code>*</code>가 <code>.</code>보다 우선순위가 낮으므로 후자에서 괄호를 빼면 컴파일되지 않습니다.</p>
+        </div>
+      </details>
+    </div>
+    <div class="icard">
+      <div class="itag">과제 4 · [난이도 중] 생성자와 소멸자의 호출 순서</div>
+      <p class="desc">생성·소멸 시 메시지를 출력하는 <code>CreateAndDestroy</code> 클래스를 만들어, 전역 객체 · 자동 지역 객체 · static 지역 객체의 생성과 소멸 시점을 직접 눈으로 확인해 보세요.</p>
+      <p class="cond">조건: 생성자 <code>CreateAndDestroy(int _id, string _message)</code>가 「Object N constructor runs」와 메시지를 출력 · 소멸자가 「Object N destructor runs」와 메시지를 출력 · 객체 배치는 <b>1번</b> main 밖 전역 / <b>2번</b> main의 자동 지역 / <b>3번</b> main의 static 지역 / <b>4번</b> main 후반부의 자동 지역 / <b>5·7번</b> <code>create()</code> 함수의 자동 지역 / <b>6번</b> <code>create()</code> 함수의 static 지역 · main이 <code>create()</code>를 호출한 뒤 다시 자기 코드를 실행하도록 구성 · 출력만 보고 순서를 설명할 수 있어야 함</p>
+<p class="runlabel">실행 예시 — 입력 없음 (전체 출력)</p><pre class="run">Object 1   constructor runs   (global before main)
+
+MAIN FUNCTION: EXECUTION BEGINS
+Object 2   constructor runs   (local automatic in main)
+Object 3   constructor runs   (local static in main)
+
+CREATE FUNCTION: EXECUTION BEGINS
+Object 5   constructor runs   (local automatic in create)
+Object 6   constructor runs   (local static in create)
+Object 7   constructor runs   (local automatic in create)
+
+CREATE FUNCTION: EXECUTION ENDS
+Object 7   destructor runs    (local automatic in create)
+Object 5   destructor runs    (local automatic in create)
+
+MAIN FUNCTION: EXECUTION RESUMES
+Object 4   constructor runs   (local automatic in main)
+
+MAIN FUNCTION: EXECUTION ENDS
+Object 4   destructor runs    (local automatic in main)
+Object 2   destructor runs    (local automatic in main)
+Object 6   destructor runs    (local static in create)
+Object 3   destructor runs    (local static in main)
+Object 1   destructor runs    (global before main)</pre>
+      <p class="score"><b>채점 포인트 (7점)</b> · 생성자·소멸자 메시지 출력 1 · 요구된 7개 객체의 저장 기간 배치 2 · 자동 지역 객체의 역순 소멸 1 · static은 한 번만 생성되고 main 종료 후 소멸함을 출력으로 입증 2 · 출력 순서에 대한 설명 서술 1</p>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 과제 4 (중) · 생성자와 소멸자의 호출 순서
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+class CreateAndDestroy {
+public:
+    CreateAndDestroy(int _id, string _message) {
+        objectID = _id;
+        message  = _message;
+        cout &lt;&lt; "Object " &lt;&lt; objectID &lt;&lt; "   constructor runs   "
+             &lt;&lt; message &lt;&lt; endl;
+    }
+    ~CreateAndDestroy() {
+        cout &lt;&lt; "Object " &lt;&lt; objectID &lt;&lt; "   destructor runs    "
+             &lt;&lt; message &lt;&lt; endl;
+    }
+private:
+    int objectID;
+    string message;
+};
+
+void create();                                  // 프로토타입
+
+CreateAndDestroy first(1, "(global before main)");   // 전역 객체
+
+int main() {
+    cout &lt;&lt; "\nMAIN FUNCTION: EXECUTION BEGINS" &lt;&lt; endl;
+    CreateAndDestroy second(2, "(local automatic in main)");
+    static CreateAndDestroy third(3, "(local static in main)");
+
+    create();                                   // 다른 함수 호출
+
+    cout &lt;&lt; "\nMAIN FUNCTION: EXECUTION RESUMES" &lt;&lt; endl;
+    CreateAndDestroy fourth(4, "(local automatic in main)");
+    cout &lt;&lt; "\nMAIN FUNCTION: EXECUTION ENDS" &lt;&lt; endl;
+    return 0;
+}
+
+void create() {
+    cout &lt;&lt; "\nCREATE FUNCTION: EXECUTION BEGINS" &lt;&lt; endl;
+    CreateAndDestroy fifth(5, "(local automatic in create)");
+    static CreateAndDestroy sixth(6, "(local static in create)");
+    CreateAndDestroy seventh(7, "(local automatic in create)");
+    cout &lt;&lt; "\nCREATE FUNCTION: EXECUTION ENDS" &lt;&lt; endl;
+}</pre>
+          <p class="hint-note">읽는 법: 전역 1번이 main보다 먼저 생성됩니다 → <code>create()</code>의 자동 지역 7번, 5번은 함수가 끝나며 <b>생성의 역순</b>으로 소멸하지만 6번 static은 살아남습니다 → main이 끝나며 자동 지역 4번, 2번이 역순 소멸 → 그 뒤 static 6번, 3번이 소멸 → 가장 마지막에 전역 1번이 소멸합니다. <code>abort()</code>로 종료하면 이 소멸자들은 <b>하나도 호출되지 않습니다</b>.</p>
+        </div>
+      </details>
+    </div>
+    <div class="icard">
+      <div class="itag">과제 5 · [난이도 상] 인터페이스와 구현 분리 + 기본 인자 생성자</div>
+      <p class="desc"><code>class Time</code>을 <code>time2.h</code>(선언) / <code>time2.cpp</code>(정의) / <code>main.cpp</code>(사용) 세 파일로 분리합니다. 생성자에 기본 인자를 주어 인자 0~3개로 모두 생성되게 하고, 생성자가 <code>setTime</code>을 재사용해 유효성 검사까지 처리하도록 만들어 보세요.</p>
+      <p class="cond">조건: <code>time2.h</code>에 <code>#ifndef TIME2_H / #define TIME2_H / #endif</code> 헤더 가드와 클래스 선언·함수 원형만 작성 · 생성자 원형은 <code>Time(int = 0, int = 0, int = 0);</code>이며 <b>기본 인자는 헤더에만</b> 씁니다 · <code>time2.cpp</code>의 생성자는 검증 로직을 중복 작성하지 말고 <code>setTime(h, m, s)</code>를 호출 · 생성자와 소멸자가 각각 [생성] / [소멸] 메시지와 시각을 출력 · <code>main.cpp</code>는 <code>#include "time2.h"</code>만 하고 구현을 전혀 모른 채 사용 · 객체 포인터 배열로 5개 객체를 순회 출력 · 컴파일 명령을 주석으로 남길 것: <code>g++ -std=c++17 main.cpp time2.cpp -o app</code></p>
+<p class="runlabel">실행 예시 — 입력 없음 (전체 출력)</p><pre class="run">--- 기본 인자 생성자 4가지 호출 ---
+[생성] 00:00:00 객체가 만들어졌습니다.
+[생성] 02:00:00 객체가 만들어졌습니다.
+[생성] 21:34:00 객체가 만들어졌습니다.
+[생성] 12:25:42 객체가 만들어졌습니다.
+
+--- 잘못된 값으로 생성 ---
+[생성] 00:00:00 객체가 만들어졌습니다.
+
+--- 각 객체 출력 (24시간 / 12시간) ---
+t1 : 00:00:00  |  12:00:00 AM
+t2 : 02:00:00  |  2:00:00 AM
+t3 : 21:34:00  |  9:34:00 PM
+t4 : 12:25:42  |  12:25:42 PM
+t5 : 00:00:00  |  12:00:00 AM
+
+--- setTime으로 값 변경 ---
+t1 변경 후 : 13:27:06  |  1:27:06 PM
+
+--- main 종료(소멸자는 생성의 역순) ---
+[소멸] 00:00:00 객체가 소멸됩니다.
+[소멸] 12:25:42 객체가 소멸됩니다.
+[소멸] 21:34:00 객체가 소멸됩니다.
+[소멸] 02:00:00 객체가 소멸됩니다.
+[소멸] 13:27:06 객체가 소멸됩니다.</pre><p class="runlabel">컴파일 명령</p><pre class="run">$ g++ -std=c++17 main.cpp time2.cpp -o app
+$ ./app</pre>
+      <p class="score"><b>채점 포인트 (10점)</b> · 3파일 분리와 헤더 가드 2 · 기본 인자를 헤더에만 선언 1 · 생성자가 <code>setTime</code>을 재사용 2 · <code>::</code>로 클래스 밖 멤버 함수 정의 1 · main이 구현을 몰라도 컴파일·동작 1 · 인자 0~3개의 네 가지 생성자 호출을 모두 시연 2 · 다중 파일 컴파일 성공 1</p>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<p class="runlabel">// time2.h — 인터페이스</p><pre>// time2.h — class Time 선언(인터페이스)
+// 멤버 함수 정의는 time2.cpp에 있습니다.
+#ifndef TIME2_H          // 헤더 중복 포함 방지
+#define TIME2_H
+
+class Time {
+public:
+    Time(int = 0, int = 0, int = 0);   // 기본 인자를 가진 생성자
+    ~Time();                           // 소멸자
+    void setTime(int, int, int);       // 유효성 검사 후 설정
+    void printUniversal() const;       // 24시간 형식 출력
+    void printStandard() const;        // 12시간 형식 출력
+private:
+    int hour;    // 0-23
+    int minute;  // 0-59
+    int second;  // 0-59
+};
+
+#endif</pre><p class="runlabel">// time2.cpp — 구현</p><pre>// time2.cpp — class Time의 멤버 함수 정의(구현)
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include "time2.h"
+using namespace std;
+
+// 기본 인자를 가진 생성자: setTime을 재사용해 유효성 검사까지 수행
+Time::Time(int h, int m, int s) {
+    setTime(h, m, s);
+    cout &lt;&lt; "[생성] ";
+    printUniversal();
+    cout &lt;&lt; " 객체가 만들어졌습니다." &lt;&lt; endl;
+}
+
+Time::~Time() {
+    cout &lt;&lt; "[소멸] ";
+    printUniversal();
+    cout &lt;&lt; " 객체가 소멸됩니다." &lt;&lt; endl;
+}
+
+void Time::setTime(int h, int m, int s) {
+    hour   = (h &gt;= 0 &amp;&amp; h &lt; 24) ? h : 0;
+    minute = (m &gt;= 0 &amp;&amp; m &lt; 60) ? m : 0;
+    second = (s &gt;= 0 &amp;&amp; s &lt; 60) ? s : 0;
+}
+
+void Time::printUniversal() const {
+    cout &lt;&lt; setfill('0') &lt;&lt; setw(2) &lt;&lt; hour &lt;&lt; ":"
+         &lt;&lt; setw(2) &lt;&lt; minute &lt;&lt; ":" &lt;&lt; setw(2) &lt;&lt; second;
+}
+
+void Time::printStandard() const {
+    cout &lt;&lt; ((hour == 0 || hour == 12) ? 12 : hour % 12)
+         &lt;&lt; ":" &lt;&lt; setfill('0') &lt;&lt; setw(2) &lt;&lt; minute
+         &lt;&lt; ":" &lt;&lt; setw(2) &lt;&lt; second
+         &lt;&lt; (hour &lt; 12 ? " AM" : " PM");
+}</pre><p class="runlabel">// main.cpp — 사용</p><pre>// main.cpp — Time 클래스 사용(구현을 몰라도 헤더만 보고 사용)
+// 컴파일: g++ -std=c++17 main.cpp time2.cpp -o app
+#include &lt;iostream&gt;
+#include "time2.h"
+using namespace std;
+
+int main() {
+    cout &lt;&lt; "--- 기본 인자 생성자 4가지 호출 ---" &lt;&lt; endl;
+    Time t1;                  // 인자 0개 → 00:00:00
+    Time t2(2);               // 시만 지정 → 02:00:00
+    Time t3(21, 34);          // 시, 분   → 21:34:00
+    Time t4(12, 25, 42);      // 전부 지정 → 12:25:42
+
+    cout &lt;&lt; "\n--- 잘못된 값으로 생성 ---" &lt;&lt; endl;
+    Time t5(27, 74, 99);      // 모두 범위 밖 → 00:00:00
+
+    cout &lt;&lt; "\n--- 각 객체 출력 (24시간 / 12시간) ---" &lt;&lt; endl;
+    Time *list[5] = { &amp;t1, &amp;t2, &amp;t3, &amp;t4, &amp;t5 };
+    for (int i = 0; i &lt; 5; ++i) {
+        cout &lt;&lt; "t" &lt;&lt; (i + 1) &lt;&lt; " : ";
+        list[i]-&gt;printUniversal();
+        cout &lt;&lt; "  |  ";
+        list[i]-&gt;printStandard();
+        cout &lt;&lt; endl;
+    }
+
+    cout &lt;&lt; "\n--- setTime으로 값 변경 ---" &lt;&lt; endl;
+    t1.setTime(13, 27, 6);
+    cout &lt;&lt; "t1 변경 후 : ";
+    t1.printUniversal();
+    cout &lt;&lt; "  |  ";
+    t1.printStandard();
+    cout &lt;&lt; endl;
+
+    cout &lt;&lt; "\n--- main 종료(소멸자는 생성의 역순) ---" &lt;&lt; endl;
+    return 0;
+}</pre>
+          <p class="hint-note">소멸 출력에서 두 가지를 확인하세요. 첫째, t5(00:00:00)가 가장 먼저 소멸하고 t1이 가장 나중에 소멸합니다 — <b>생성의 역순</b>입니다. 둘째, t1은 생성 시각 00:00:00이 아니라 <code>setTime</code>으로 바뀐 13:27:06을 출력합니다 — 소멸자는 <b>소멸 시점의 상태</b>를 보고 있습니다.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  이지스퍼블리싱 「Do it! C++」 06장(객체지향 프로그래밍과 클래스)과 Deitel 「C++ How to Program」 6장(Classes and Data Abstraction) 학습 확인용 자료입니다.
+  실습과제의 모든 실행 예시는 <code>g++ -std=c++17</code>로 컴파일·실행한 실제 출력입니다. 상속·가상 함수·다형성의 구현과 동적 메모리 할당(new/delete)은 이번 주 학습 범위에 포함되지 않습니다.
+</footer>
+
+<script>
+const questions = [
+  {
+    "prompt": "프로그래밍 패러다임의 발전 순서로 옳은 것은?",
+    "options": [
+      "비구조적 → 절차적 → 객체지향",
+      "절차적 → 비구조적 → 객체지향",
+      "객체지향 → 절차적 → 비구조적",
+      "비구조적 → 객체지향 → 절차적"
+    ],
+    "correct": 0,
+    "explanation": "코드를 구조화하지 않고 goto 문으로 흐름을 옮기는 비구조적 프로그래밍(어셈블리어, 초창기 포트란)에서 시작해, 프로시저(함수)로 코드를 모듈화한 절차적 프로그래밍(C, 코볼, 포트란)을 거쳐, 데이터와 함수를 하나의 객체로 묶는 객체지향 프로그래밍으로 발전했습니다."
+  },
+  {
+    "prompt": "절차적 프로그래밍과 객체지향 프로그래밍의 접근 방식에 대한 설명으로 옳은 것은?",
+    "options": [
+      "절차적은 상향식, 객체지향은 하향식이다",
+      "절차적은 하향식(top-down), 객체지향은 상향식(bottom-up)이다",
+      "둘 다 하향식 접근 방법이다",
+      "하향식이 기능 변경에 대응하기 더 쉽다"
+    ],
+    "correct": 1,
+    "explanation": "절차적 프로그래밍은 프로그램(상위)의 기능을 프로시저(하위)로 분할하는 하향식이고, 객체지향은 논리적 단위인 객체(하위)를 먼저 정의해 그 조합으로 프로그램(상위)을 만드는 상향식입니다. 하향식은 전체 기능이 변경되면 세부 단위가 재편되어 변화 대응이 어렵지만, 상향식은 세부 단위가 독립적이라 추가하거나 일부만 변경하면 됩니다."
+  },
+  {
+    "prompt": "다음 중 'is-a' 관계가 성립하는 것은?",
+    "options": [
+      "동력 장치 — 가솔린 엔진",
+      "자동차 — 바퀴",
+      "엔진 — 가솔린 엔진",
+      "동력 장치 — 제동 장치"
+    ],
+    "correct": 2,
+    "explanation": "'가솔린 엔진은 엔진의 한 종류다'가 성립하므로 is-a(상속) 관계이며, 상호 교환이 가능해 가솔린 엔진이 엔진을 대체할 수 있습니다. 나머지는 포함 관계(has-a)로, 동력 장치가 가솔린 엔진을 '포함'할 뿐 서로 대체할 수는 없습니다."
+  },
+  {
+    "prompt": "다음 설명에 해당하는 객체지향의 특징은?\n「복잡한 내부 기능을 묶어 단순화해 동작하게 함으로써 외부에서 불필요한 정보를 감춘다. 내연기관 내부의 출력 조절기와 피스톤을 감추고 '출력 조절'만 노출한다.」",
+    "options": [
+      "추상화",
+      "상속성",
+      "다형성",
+      "캡슐화"
+    ],
+    "correct": 3,
+    "explanation": "캡슐화입니다. 교재는 「불필요한 것을 감추기만 하면 은닉화, 복잡함의 대부분을 숨기고 단순화하여 묶어서 전체를 제공하는 것이 캡슐화」로 둘을 구분하니 주의하세요. 추상화는 집단의 불필요한 요소를 배제하고 공통된 특징만 추출해 대표 객체를 만드는 것입니다."
+  },
+  {
+    "prompt": "클래스와 인스턴스(객체)의 관계에 대한 설명으로 옳은 것은?",
+    "options": [
+      "클래스는 데이터 형식, 객체는 그 형식으로 만든 변수에 해당한다",
+      "클래스는 변수, 객체는 데이터 형식에 해당한다",
+      "하나의 클래스로는 객체를 하나만 만들 수 있다",
+      "객체를 선언할 때는 반드시 new를 사용해야 한다"
+    ],
+    "correct": 0,
+    "explanation": "교재는 「객체와 클래스는 변수와 데이터 형식과 유사한 관계」라고 설명합니다. 클래스는 객체가 포함할 멤버 변수와 멤버 함수를 정의하는 문법적 요소이고, 객체는 그 클래스를 사용할 수 있도록 만든 변수입니다. 정적 선언(engine my_engine;)과 new를 사용한 동적 선언 모두 가능하며, 동적 객체는 점(.)이 아니라 화살표(->)로 멤버에 접근합니다."
+  },
+  {
+    "prompt": "struct와 class의 차이에 대한 설명으로 옳은 것은?",
+    "options": [
+      "struct는 멤버 함수를 가질 수 없다",
+      "class에는 접근 지정자를 쓸 수 없다",
+      "접근 지정자를 생략했을 때 기본 접근 권한이 class는 private, struct는 public이다",
+      "struct에는 private을 지정할 수 없다"
+    ],
+    "correct": 2,
+    "explanation": "교재의 정리 그대로입니다 — class member access는 기본이 private, struct member access는 기본이 public이며, 양쪽 모두 private / public / protected를 명시적으로 지정할 수 있습니다. C++의 struct도 멤버 함수와 생성자를 가질 수 있어, 문법적 차이는 기본 접근 권한뿐입니다."
+  },
+  {
+    "prompt": "다음 코드의 실행 결과는 무엇인가요?",
+    "code": "class Count {\npublic:\n    int x;\n    void print() { cout << x << endl; }\n};\nint main() {\n    Count counter;\n    Count *counterPtr = &counter;\n    Count &counterRef = counter;\n    counter.x = 1;     counter.print();\n    counterRef.x = 2;  counterRef.print();\n    counterPtr->x = 3; counterPtr->print();\n    cout << counter.x;\n}",
+    "options": [
+      "1 2 3 그리고 마지막에 1",
+      "1 1 1 그리고 마지막에 1",
+      "컴파일 오류 발생",
+      "1 2 3 그리고 마지막에 3"
+    ],
+    "correct": 3,
+    "explanation": "객체 이름(.), 레퍼런스(.), 포인터(->)는 모두 같은 하나의 객체를 가리키는 서로 다른 핸들입니다. 따라서 세 번의 대입이 같은 x에 차례로 적용되어 1, 2, 3이 출력되고 마지막에 남은 값 3이 출력됩니다. counterPtr->x는 (*counterPtr).x와 같으며, *가 .보다 우선순위가 낮으므로 괄호는 필수입니다."
+  },
+  {
+    "prompt": "생성자와 소멸자에 대한 설명으로 옳지 않은 것은?",
+    "options": [
+      "생성자는 클래스와 같은 이름이며 반환형을 쓰지 않는다",
+      "생성자는 함수 오버로딩으로 여러 개 둘 수 있다",
+      "소멸자는 ~클래스이름() 형태이며 인자와 반환값이 없고 오버로딩할 수 없다",
+      "소멸자를 직접 작성하지 않으면 객체는 소멸자 없이 사라진다"
+    ],
+    "correct": 3,
+    "explanation": "명시적 소멸자를 작성하지 않으면 컴파일러가 '빈 소멸자(empty destructor)'를 자동으로 만들어 줍니다. 나머지는 모두 옳은 설명입니다 — 생성자는 클래스와 같은 이름에 반환형이 없고 오버로딩이 가능하며, 소멸자는 이름 앞에 물결표(~)를 붙이고 인자가 없어 오버로딩이 불가능하므로 클래스마다 하나만 존재합니다."
+  },
+  {
+    "prompt": "전역 객체 1개, main의 자동 지역 객체 2개, main의 static 지역 객체 1개가 있는 프로그램의 소멸 순서에 대한 설명으로 옳은 것은?",
+    "options": [
+      "전역 객체가 가장 먼저 소멸한다",
+      "static 지역 객체는 선언된 블록을 벗어나는 순간 소멸한다",
+      "자동 지역 객체가 생성의 역순으로 소멸하고, static 지역 객체와 전역 객체는 main이 끝난 뒤에 소멸한다",
+      "모든 객체가 생성된 순서대로 소멸한다"
+    ],
+    "correct": 2,
+    "explanation": "자동 지역 객체는 스코프를 벗어날 때 생성의 역순으로 소멸합니다. static 지역 객체는 실행이 선언 위치에 도달할 때 딱 한 번 생성되고, main이 종료되거나 exit가 호출될 때 소멸합니다. 전역 객체는 main을 포함한 어떤 함수보다도 먼저 생성되고 가장 마지막에 소멸합니다. 단, abort로 종료하면 소멸자는 호출되지 않습니다."
+  },
+  {
+    "prompt": "다음은 인터페이스와 구현을 분리한 클래스입니다. 파일 구성에 대한 설명으로 옳은 것은?",
+    "code": "// time1.h\n#ifndef TIME1_H\n#define TIME1_H\nclass Time {\npublic:\n    Time();\n    void setTime(int, int, int);\nprivate:\n    int hour, minute, second;\n};\n#endif\n\n// time1.cpp\n#include \"time1.h\"\nTime::Time() { hour = minute = second = 0; }",
+    "options": [
+      "헤더 파일(.h)에는 멤버 함수의 본문까지 모두 작성해야 한다",
+      "#ifndef / #define은 컴파일 속도를 높이기 위한 선택 사항이다",
+      "클래스를 두 파일로 나누면 다른 파일에서 그 클래스를 사용할 수 없다",
+      "헤더 파일에는 클래스 선언과 함수 원형을, 소스 파일에는 범위 지정 연산자 ::를 사용해 멤버 함수를 정의한다"
+    ],
+    "correct": 3,
+    "explanation": "헤더 파일에는 클래스 정의와 함수 원형만 두고, 소스 파일에서 범위 지정 연산자(::)로 '반환형 클래스이름::함수이름()' 형태의 멤버 함수를 정의합니다. 사용자는 헤더만 보고 '무엇을 할 수 있는가'를 알 수 있고 '어떻게 하는가'는 몰라도 되므로 프로그램을 수정하기 쉬워집니다. #ifndef / #define / #endif는 헤더가 여러 번 포함되는 것을 막는 헤더 가드로, 없으면 클래스 재정의 오류가 발생합니다."
+  }
+];
+
+const debugProblems = [
+  {
+    "title": "문제 1 · 컴파일 오류 찾기",
+    "desc": "이 코드는 컴파일되지 않습니다. 원인을 찾고, 값을 바꾸려면 어떻게 해야 할지 설명해 보세요.",
+    "code": [
+      "#include <iostream>",
+      "using namespace std;",
+      "",
+      "class Time {",
+      "    int hour;              // 접근 지정자 생략",
+      "public:",
+      "    void setHour(int h) { hour = h; }",
+      "};",
+      "",
+      "int main() {",
+      "    Time t;",
+      "    t.hour = 7;",
+      "    cout << t.hour;",
+      "    return 0;",
+      "}"
+    ],
+    "highlight": [
+      11,
+      12
+    ],
+    "answer": "class는 접근 지정자를 생략하면 <b>기본이 private</b>이므로 <code>hour</code>는 클래스 밖에서 접근할 수 없습니다. g++는 <code>error: 'int Time::hour' is private within this context</code>, MSVC는 <code>error C2248: 'hour' : cannot access private member declared in class 'Time'</code>를 출력합니다. 해결 방법은 접근 함수(accessor)를 경유하는 것입니다 — 쓰기는 <code>setHour()</code>, 읽기는 <code>getHour()</code>처럼 public 멤버 함수를 두고, 그 안에서 유효성 검사까지 수행하게 만드는 것이 캡슐화의 핵심입니다."
+  },
+  {
+    "title": "문제 2 · 컴파일 오류 찾기",
+    "desc": "생성자를 만들려고 했는데 컴파일이 되지 않습니다. 무엇이 잘못됐을까요?",
+    "code": [
+      "class Time {",
+      "public:",
+      "    void Time() { hour = 0; }",
+      "private:",
+      "    int hour;",
+      "};"
+    ],
+    "highlight": 2,
+    "answer": "생성자는 <b>반환형을 적을 수 없습니다</b>. <code>void</code>를 붙이면 컴파일러는 <code>error: return type specification for constructor invalid</code>를 출력합니다. <code>Time() { hour = 0; }</code>처럼 반환형을 지우면 됩니다. 소멸자도 같은 규칙이 적용되어 <code>~Time()</code>에 반환형을 쓸 수 없습니다."
+  },
+  {
+    "title": "문제 3 · 컴파일 오류 찾기",
+    "desc": "클래스 이름으로 바로 멤버를 쓰려고 했습니다. 왜 안 될까요?",
+    "code": [
+      "class Time {",
+      "public:",
+      "    int hour;",
+      "    void printUniversal() { }",
+      "};",
+      "",
+      "int main() {",
+      "    Time::hour = 7;",
+      "    Time::printUniversal();",
+      "    return 0;",
+      "}"
+    ],
+    "highlight": [
+      7,
+      8
+    ],
+    "answer": "클래스 스코프 밖에서 멤버에 접근하려면 반드시 <b>핸들</b>(객체 이름, 객체 레퍼런스, 객체 포인터)이 필요합니다. 컴파일러는 <code>error: invalid use of non-static data member 'Time::hour'</code>를 출력합니다. 클래스는 설계도일 뿐 메모리에 실체가 없으므로 <code>Time t; t.hour = 7; t.printUniversal();</code>처럼 인스턴스를 먼저 만들어야 합니다. 클래스 이름과 <code>::</code>로 바로 접근할 수 있는 것은 static 멤버뿐입니다."
+  },
+  {
+    "title": "문제 4 · 실행 결과 예측하기",
+    "desc": "private 멤버의 레퍼런스를 반환하는 멤버 함수가 있습니다. 주석의 ??? 부분에는 무엇이 출력될까요? 그리고 이 코드가 왜 위험한지 설명해 보세요.",
+    "code": [
+      "class Time {",
+      "public:",
+      "    Time() { hour = 0; }",
+      "    int &badSetHour(int h) {        // DANGEROUS",
+      "        hour = (h >= 0 && h < 24) ? h : 0;",
+      "        return hour;",
+      "    }",
+      "    int getHour() const { return hour; }",
+      "private:",
+      "    int hour;",
+      "};",
+      "",
+      "int main() {",
+      "    Time t;",
+      "    int &hourRef = t.badSetHour(20);",
+      "    cout << hourRef << endl;        // ??? ",
+      "    hourRef = 30;",
+      "    cout << t.getHour() << endl;    // ???",
+      "    t.badSetHour(12) = 74;",
+      "    cout << t.getHour() << endl;    // ???",
+      "    return 0;",
+      "}"
+    ],
+    "highlight": [
+      3,
+      18
+    ],
+    "answer": "출력은 차례대로 <code>20</code> → <code>30</code> → <code>74</code>입니다. public 멤버 함수가 private 멤버의 <b>non-const 레퍼런스</b>를 반환하면, 그 레퍼런스가 private 데이터의 별칭(lvalue)이 되어 캡슐화가 완전히 무너집니다. <code>hourRef = 30;</code>은 <code>badSetHour</code>의 범위 검사를 건너뛰고 hour를 24 이상인 30으로 만들고, 심지어 <code>t.badSetHour(12) = 74;</code>처럼 <b>함수 호출 자체가 대입의 왼쪽</b>에 올 수 있습니다. private 멤버는 값으로 반환하거나(<code>int getHour() const</code>) const 레퍼런스로 반환해야 합니다."
+  }
+];
+</script>
+
+<script>
+function escapeHtml(str){
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ---- render quiz ----
+const quizList = document.getElementById('quizList');
+questions.forEach((q, i) => {
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.dataset.index = i;
+
+  let html = `<div class="qtag">Q${i+1}</div>`;
+  if (q.code) {
+    html += `<pre class="snippet">${escapeHtml(q.code)}</pre>`;
+    html += `<p class="prompt">${escapeHtml(q.prompt)}</p>`;
+  } else {
+    html += `<p class="prompt">${escapeHtml(q.prompt)}</p>`;
+  }
+  html += `<div class="options">`;
+  q.options.forEach((opt, j) => {
+    html += `
+      <label class="opt" data-opt="${j}">
+        <input type="radio" name="q${i}" value="${j}">
+        <span>${escapeHtml(opt)}</span>
+      </label>`;
+  });
+  html += `</div>`;
+  html += `<div class="feedback"><span class="verdict"></span><div class="exp"></div></div>`;
+
+  card.innerHTML = html;
+  quizList.appendChild(card);
+});
+
+document.getElementById('gradeBtn').addEventListener('click', () => {
+  let score = 0;
+  let allAnswered = true;
+
+  questions.forEach((q, i) => {
+    const card = quizList.children[i];
+    const selected = card.querySelector(`input[name="q${i}"]:checked`);
+    if (!selected) { allAnswered = false; return; }
+
+    const chosen = parseInt(selected.value, 10);
+    const isCorrect = chosen === q.correct;
+    if (isCorrect) score++;
+
+    card.classList.add('graded');
+    card.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    card.querySelectorAll('.opt').forEach((optEl) => {
+      const j = parseInt(optEl.dataset.opt, 10);
+      if (j === q.correct) optEl.classList.add('mark-correct');
+      else if (j === chosen) optEl.classList.add('mark-wrong');
+    });
+
+    const fb = card.querySelector('.feedback');
+    fb.querySelector('.verdict').textContent = isCorrect ? '정답' : '오답';
+    fb.querySelector('.exp').textContent = q.explanation;
+  });
+
+  if (!allAnswered) {
+    alert('모든 문항에 답한 후 채점해 주세요.');
+    return;
+  }
+
+  document.getElementById('scorePill').textContent = `${score} / ${questions.length} 채점됨`;
+  document.getElementById('scorePill').classList.add('done');
+  document.getElementById('gradeBtn').disabled = true;
+  document.getElementById('gradeBtn').textContent = '채점 완료';
+
+  const summary = document.getElementById('summary');
+  summary.style.display = 'block';
+  summary.textContent = `// ${score} / ${questions.length} passed`;
+});
+
+// ---- render debug problems ----
+const debugList = document.getElementById('debugList');
+debugProblems.forEach((p) => {
+  const card = document.createElement('div');
+  card.className = 'dcard';
+
+  const highlightSet = new Set(Array.isArray(p.highlight) ? p.highlight : (p.highlight !== null ? [p.highlight] : []));
+  const codeLines = p.code.map((line, idx) => {
+    const escaped = escapeHtml(line);
+    return highlightSet.has(idx) ? `<span class="linehl">${escaped}</span>` : escaped;
+  }).join('\n');
+
+  card.innerHTML = `
+    <div class="dtag">${escapeHtml(p.title)}</div>
+    <p class="desc">${escapeHtml(p.desc)}</p>
+    <pre class="snippet">${codeLines}</pre>
+    <details class="reveal">
+      <summary>정답 및 해설 보기</summary>
+      <div class="answer">${p.answer}</div>
+    </details>
+  `;
+  debugList.appendChild(card);
+});
+</script>
+
+</body>
+</html>
