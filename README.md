@@ -1,64 +1,71 @@
-# C++ 02장 · 변수와 연산자 — 확인 학습 퀴즈
+# C++ 객체지향 프로그래밍 · 주차별 확인 학습
 
-「Do it! C++」 첫째마당 02장(변수와 연산자) 학습 확인용 웹페이지입니다.
-빌드 도구 없이 순수 HTML/CSS/JS 한 파일(`index.html`)로 되어 있어 GitHub Pages에 바로 올릴 수 있습니다.
+인하대학교 C++ 객체지향 프로그래밍 강의의 주차별 학생 확인 학습 자료입니다.
+빌드 도구 없이 순수 HTML/CSS/JS로 되어 있어 GitHub Pages에 그대로 올라갑니다.
 
-- 8문항 객관식 퀴즈 (채점 시 정답/오답 표시 + 해설 제공)
-- 컴파일 오류·데이터 유실·실행 결과 예측 등 코드 디버깅 문제 4개 (정답 접기/펼치기)
+공개 주소: https://leeyeoninha.github.io/c-plus-programing/
+
+## 구조
+
+```
+/
+├── index.html          ← 전체 주차 목차 (새로 추가)
+├── oop2week1/          ← 1주차 · 02장 변수와 연산자 (기존 루트 index.html을 이동)
+├── oop2week2/          ← 2주차 · 03장 포인터와 메모리 구조
+├── oop2week3/          ← 3주차 · 06장 클래스와 객체
+│   ├── index.html
+│   └── src/            모범 답안 소스
+└── oop2week4/          ← 4주차 · 09장 클래스 심화와 예외 던지기
+    ├── index.html
+    └── src/            모범 답안 소스
+```
+
+각 주차 페이지는 세 파트로 구성됩니다.
+
+- **01 이해도 점검 퀴즈** — 객관식. 채점 후 문항별 정답·해설 표시
+- **02 코드 오류 찾기** — 컴파일 오류·실행 결과 예측. 정답 접기/펼치기
+- **03 직접 구현해 보기** — 조건·실행 예시·모범 답안
+
+## 주차별 범위
+
+| 주차 | 장 | 주요 내용 |
+|------|-----|-----------|
+| 1주차 | Do it! C++ 02장 | 표준 입출력, 데이터 형식과 변수, 연산자, 유효 범위 |
+| 2주차 | Do it! C++ 03장 | 포인터와 메모리 주소, 배열과 포인터, 구조체, static·const, 레퍼런스 |
+| 3주차 | Do it! C++ 06장 / C++ How to Program 06장 | 객체지향 4대 특징, 클래스와 인스턴스, struct→class, 접근 지정자, 생성자·소멸자, 인터페이스와 구현 분리 |
+| 4주차 | C++ How to Program 09장 | std::format, 생성·소멸 호출 순서, 합성(has-a), const 객체·const 멤버 함수, friend, 예외 던지기 |
+
+## 빌드 환경
+
+실습과제는 Visual Studio에서 빈 프로젝트를 만들고 소스 파일을 추가해 빌드합니다.
+
+**4주차는 `std::format`을 사용하므로 C++20 이상이 필요합니다.**
+프로젝트 속성 → C/C++ → 언어 → C++ 언어 표준 → `ISO C++20 표준(/std:c++20)` 으로 설정하세요.
 
 ## 로컬에서 미리보기
 
-별도 서버 없이 `index.html`을 브라우저로 바로 열어서 확인할 수 있습니다.
+목차 페이지의 주차 링크가 동작하려면 폴더 단위로 열어야 합니다.
 
 ```bash
-open index.html        # macOS
-start index.html        # Windows
-xdg-open index.html     # Linux
+cd c-plus-programing
+python -m http.server 8000
 ```
 
-## 배포 방법 (택 1)
+그다음 브라우저에서 `http://localhost:8000/` 을 엽니다.
 
-### 방법 A. GitHub Actions로 자동 배포 (권장)
+## 배포
 
-1. 이 폴더 전체를 새 GitHub 저장소에 push합니다.
-
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit: C++ 02장 퀴즈"
-   git branch -M main
-   git remote add origin https://github.com/<계정명>/<저장소명>.git
-   git push -u origin main
-   ```
-
-2. GitHub 저장소 페이지에서 **Settings → Pages → Build and deployment → Source**를
-   **GitHub Actions**로 설정합니다.
-3. `main` 브랜치에 push할 때마다 `.github/workflows/deploy.yml`이 자동으로 실행되어
-   `https://<계정명>.github.io/<저장소명>/` 주소에 배포됩니다.
-
-### 방법 B. 스크립트로 수동 배포 (gh-pages 브랜치)
-
-GitHub Actions를 쓰지 않고 바로 배포하고 싶다면:
+`main` 브랜치에 push하면 `.github/workflows/deploy.yml`이 저장소 루트 전체를 GitHub Pages로 자동 배포합니다. 별도 명령은 필요하지 않습니다.
 
 ```bash
-chmod +x deploy.sh
-./deploy.sh https://github.com/<계정명>/<저장소명>.git
+git add .
+git commit -m "..."
+git push origin main
 ```
 
-이후 저장소 **Settings → Pages**에서 **Source: Deploy from a branch**,
-**Branch: gh-pages / (root)**로 지정하면 배포가 완료됩니다.
+저장소 Actions 탭에서 「Deploy quiz to GitHub Pages」가 완료되면 1~2분 내에 반영됩니다.
 
-## 폴더 구조
+## 교재
 
-```
-cpp-quiz/
-├── index.html                      # 퀴즈 + 디버깅 문제 페이지 (배포 대상)
-├── deploy.sh                       # gh-pages 브랜치 수동 배포 스크립트
-├── .github/workflows/deploy.yml    # GitHub Actions 자동 배포 워크플로
-└── README.md
-```
-
-## 문항/문제 수정하기
-
-`index.html` 안의 `<script>` 영역에 있는 `questions`(퀴즈)와
-`debugProblems`(디버깅 문제) 배열 값만 수정하면 문항을 바꾸거나 추가할 수 있습니다.
+- 이지스퍼블리싱 「Do it! C++」
+- Deitel 「C++ How to Program」 10/e
