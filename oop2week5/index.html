@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ 09·10장 · this, static 멤버, 연산자 오버로딩 — 확인 학습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10131a;
+    --bg-raise: #171b24;
+    --bg-card: #1c212c;
+    --line: #2a3040;
+    --ink: #e7e9ee;
+    --ink-dim: #8b93a7;
+    --amber: #f2b84b;
+    --amber-dim: #7a611f;
+    --mint: #7fd8a6;
+    --mint-dim: #234433;
+    --coral: #e8836e;
+    --coral-dim: #472a24;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, #1a2130 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height:1.6;
+    padding: 0 0 96px;
+  }
+  a{ color: var(--amber); }
+
+  /* ---------- window chrome ---------- */
+  .titlebar{
+    display:flex; align-items:center; gap:8px;
+    padding: 12px 20px;
+    background: var(--bg-raise);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index: 20;
+  }
+  .dot{ width:11px; height:11px; border-radius:50%; }
+  .dot.r{ background:#e8836e55; border:1px solid #e8836e; }
+  .dot.y{ background:#f2b84b55; border:1px solid #f2b84b; }
+  .dot.g{ background:#7fd8a655; border:1px solid #7fd8a6; }
+  .filename{
+    margin-left: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .score-pill{
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 5px 12px;
+    border-radius: 100px;
+  }
+  .score-pill.done{ color: var(--mint); border-color: var(--mint-dim); }
+
+  /* ---------- header / hero ---------- */
+  header.hero{
+    max-width: 760px; margin: 0 auto;
+    padding: 56px 24px 40px;
+  }
+  .eyebrow-line{
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    margin: 0 0 14px;
+  }
+  header.hero h1{
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.25;
+    margin: 0 0 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.hero p{
+    color: var(--ink-dim);
+    font-size: 16px;
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  main{ max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  section.block{ margin: 48px 0; }
+  .block-head{
+    display:flex; align-items:baseline; gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .block-head .idx{
+    font-family: var(--mono); color: var(--amber); font-size: 14px;
+  }
+  .block-head h2{ font-size: 20px; margin:0; font-weight: 700; }
+
+  /* ---------- quiz card ---------- */
+  .qcard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 22px 20px;
+    margin-bottom: 16px;
+    transition: border-color .2s ease;
+  }
+  .qcard .qtag{
+    font-family: var(--mono); font-size: 12px; color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  .qcard p.prompt{
+    margin: 0 0 16px;
+    font-size: 15.5px;
+    white-space: pre-wrap;
+  }
+  .prompt code, pre.snippet{
+    font-family: var(--mono);
+    font-size: 13.5px;
+  }
+  pre.snippet{
+    background: #0d0f15;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 10px 0 16px;
+    color: #cdd3e0;
+  }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt{
+    display:flex; align-items:flex-start; gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14.5px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .opt:hover{ border-color: #3a4257; background: #20263300; }
+  .opt input{ margin-top: 3px; accent-color: var(--amber); }
+  .qcard.correct{ border-color: var(--mint-dim); background: linear-gradient(180deg, #16241c 0%, var(--bg-card) 60px); }
+  .qcard.incorrect{ border-color: var(--coral-dim); background: linear-gradient(180deg, #241a18 0%, var(--bg-card) 60px); }
+  .opt.mark-correct{ border-color: var(--mint); background: #16281f; }
+  .opt.mark-wrong{ border-color: var(--coral); background: #2a1a17; }
+  .feedback{
+    display:none;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-size: 14px; color: var(--ink-dim);
+  }
+  .feedback .verdict{
+    font-family: var(--mono); font-weight:700; font-size: 13px;
+    display:inline-block; margin-bottom: 6px;
+  }
+  .qcard.correct .feedback .verdict{ color: var(--mint); }
+  .qcard.incorrect .feedback .verdict{ color: var(--coral); }
+  .qcard.graded .feedback{ display:block; }
+  .qcard.graded .opt{ pointer-events: none; }
+
+  /* ---------- submit / summary ---------- */
+  .grade-bar{
+    display:flex; justify-content:center; margin: 32px 0 8px;
+  }
+  #gradeBtn{
+    font-family: var(--mono); font-size: 14px; font-weight:700;
+    color: #10131a; background: var(--amber);
+    border:none; padding: 13px 28px; border-radius: 8px;
+    cursor:pointer;
+    box-shadow: 0 0 0 1px var(--amber-dim);
+  }
+  #gradeBtn:hover{ filter: brightness(1.07); }
+  #gradeBtn:disabled{ opacity:.5; cursor:not-allowed; }
+  .summary{
+    display:none;
+    text-align:center; font-family: var(--mono);
+    color: var(--ink-dim); font-size: 13px; margin-top: 10px;
+  }
+
+  /* ---------- debug / impl problem cards ---------- */
+  .dcard, .icard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .dcard .dtag{
+    font-family: var(--mono); font-size: 12px; color: var(--coral); margin-bottom: 10px;
+  }
+  .icard .itag{
+    font-family: var(--mono); font-size: 12px; color: var(--mint); margin-bottom: 10px;
+  }
+  .dcard p.desc, .icard p.desc{ margin: 0 0 14px; color: var(--ink-dim); font-size: 14.5px; }
+  .icard p.cond{ margin: 0 0 14px; font-size: 14px; color: var(--ink); }
+  .icard p.cond code{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+    color: var(--amber);
+  }
+  .linehl{ background:#472a2455; border-left: 2px solid var(--coral); display:block; margin: 0 -16px; padding: 0 16px 0 14px; }
+  details.reveal{
+    margin-top: 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+  }
+  details.reveal summary{
+    cursor:pointer;
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    list-style: none;
+  }
+  details.reveal summary::-webkit-details-marker{ display:none; }
+  details.reveal summary::before{ content: "▸ "; }
+  details.reveal[open] summary::before{ content: "▾ "; }
+  details.reveal .answer{
+    margin-top: 12px; font-size: 14.5px; color: var(--ink);
+  }
+  details.reveal .answer code, details.reveal .answer pre{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+  }
+  details.reveal .answer pre{
+    display:block; padding: 14px 16px; overflow-x:auto;
+    color: #cdd3e0; line-height: 1.55;
+  }
+  details.reveal .hint-note{
+    margin-top: 10px; font-size: 13.5px; color: var(--ink-dim);
+  }
+
+  footer{
+    max-width: 760px; margin: 40px auto 0; padding: 24px;
+    color: var(--ink-dim); font-size: 13px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- run example (week3) ---------- */
+  .runlabel{
+    font-family: var(--mono); font-size: 12.5px; color: var(--mint);
+    margin: 16px 0 6px;
+  }
+  pre.run{
+    background:#0d0f15;
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--mint);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 0 0 6px;
+    color:#cdd3e0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre.run .in{ color: var(--amber); font-weight: 700; }
+  .icard p.score{
+    margin: 14px 0 0; font-size: 13.5px; color: var(--ink-dim);
+    border-top: 1px dashed var(--line); padding-top: 12px;
+  }
+  .icard p.score b{ color: var(--ink); }
+
+  .navback{ margin: 18px 0 0; font-size: 13.5px; }
+  .navback a{ font-family: var(--mono); color: var(--ink-dim); text-decoration: none; }
+  .navback a:hover{ color: var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+  <span class="filename">chapter09_10_review.cpp</span>
+  <span class="score-pill" id="scorePill">0 / 21 채점됨</span>
+</div>
+
+<header class="hero">
+  <p class="eyebrow-line">// C++ How to Program &nbsp;·&nbsp; 09장 후반 · 10장 전반 &nbsp;·&nbsp; 5주차</p>
+  <h1>this 포인터, static 멤버, 연산자 오버로딩 확인 학습</h1>
+  <p>프렌드 클래스와 프렌드를 쓰는 기준, this 포인터와 연쇄 멤버 함수 호출, static 데이터 멤버와 static 멤버 함수, string 클래스의 오버로딩된 연산자, 연산자 오버로딩의 규칙, 그리고 스트림 삽입·추출 연산자 &lt;&lt; &gt;&gt;의 오버로딩까지 — 이번 주 학습 내용을 퀴즈와 디버깅 문제, 직접 구현 과제로 점검해 보세요.</p>
+  <p class="navback"><a href="../">← 전체 주차 목록으로</a></p>
+</header>
+
+<main>
+  <section class="block" id="quiz-block">
+    <div class="block-head">
+      <span class="idx">01</span>
+      <h2>이해도 점검 퀴즈</h2>
+    </div>
+    <div id="quizList"></div>
+    <div class="grade-bar"><button id="gradeBtn">채점하기</button></div>
+    <p class="summary" id="summary"></p>
+  </section>
+
+  <section class="block" id="debug-block">
+    <div class="block-head">
+      <span class="idx">02</span>
+      <h2>코드 오류 찾기</h2>
+    </div>
+    <div id="debugList"></div>
+  </section>
+
+  <section class="block" id="impl-block">
+    <div class="block-head">
+      <span class="idx">03</span>
+      <h2>직접 구현해 보기</h2>
+    </div>
+
+    <div class="icard">
+      <div class="itag">과제 1 · [난이도 하] this 포인터와 연쇄 멤버 함수 호출 — Time 클래스</div>
+      <p class="desc">교재 그림 9.24~9.26처럼 Time 클래스의 set 함수가 <code>*this</code>를 반환하도록 만들어, 한 문장에서 여러 set 함수를 이어 호출합니다.</p>
+      <p class="cond">조건: 멤버는 <code>unsigned int hour, minute, second</code> · <code>setTime</code>, <code>setHour</code>, <code>setMinute</code>, <code>setSecond</code>는 모두 <b><code>Time &amp;</code>를 반환</b>하고 마지막 문장이 <code>return *this;</code> · 범위를 벗어나면 <code>invalid_argument</code>를 던진다 · get 함수와 출력 함수 <code>printUniversal()</code>, <code>printStandard()</code>는 const 멤버 함수 · main에서 <code>t.setHour( 18 ).setMinute( 30 ).setSecond( 22 );</code>로 설정해 두 형식으로 출력 · 이어서 시·분·초를 입력받아 <b>연쇄 호출로</b> 설정하고, <code>try</code>/<code>catch</code>로 예외를 잡은 뒤 현재 객체 상태를 출력 · 입력 실패도 검사할 것: <code>if (!(cin &gt;&gt; h &gt;&gt; m &gt;&gt; s))</code></p>
+<p class="runlabel">실행 예시 ① — 정상 값</p><pre class="run">Universal time: 18:30:22
+Standard time: 6:30:22 PM
+
+시, 분, 초를 입력하세요: <span class="in">10 20 30</span>
+현재 객체 상태 -&gt; 10:20:30 / 10:20:30 AM</pre><p class="runlabel">실행 예시 ② — 분이 범위 밖 (시는 이미 반영된 뒤 예외)</p><pre class="run">시, 분, 초를 입력하세요: <span class="in">10 75 5</span>
+예외 발생: minute must be 0-59
+현재 객체 상태 -&gt; 10:30:22 / 10:30:22 AM</pre><p class="runlabel">실행 예시 ③ — 시가 범위 밖 (아무것도 반영되지 않음)</p><pre class="run">시, 분, 초를 입력하세요: <span class="in">24 0 0</span>
+예외 발생: hour must be 0-23
+현재 객체 상태 -&gt; 18:30:22 / 6:30:22 PM</pre><p class="runlabel">실행 예시 ④ — 경계값 (자정)</p><pre class="run">시, 분, 초를 입력하세요: <span class="in">0 0 59</span>
+현재 객체 상태 -&gt; 00:00:59 / 12:00:59 AM</pre><p class="runlabel">실행 예시 ⑤ — 숫자가 아닌 입력</p><pre class="run">시, 분, 초를 입력하세요: <span class="in">abc</span>
+숫자를 입력해야 합니다.</pre>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 과제 1 · this 포인터와 연쇄 멤버 함수 호출 (교재 그림 9.24~9.26 기반)
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include &lt;stdexcept&gt;
+using namespace std;
+
+class Time
+{
+public:
+   explicit Time( int = 0, int = 0, int = 0 ); // 기본 생성자
+
+   // set 함수 — Time &amp;를 반환해 연쇄 호출을 가능하게 한다
+   Time &amp;setTime( int, int, int );
+   Time &amp;setHour( int );
+   Time &amp;setMinute( int );
+   Time &amp;setSecond( int );
+
+   unsigned int getHour() const;
+   unsigned int getMinute() const;
+   unsigned int getSecond() const;
+
+   void printUniversal() const; // HH:MM:SS
+   void printStandard() const;  // HH:MM:SS AM/PM
+private:
+   unsigned int hour = 0;   // 0 - 23
+   unsigned int minute = 0; // 0 - 59
+   unsigned int second = 0; // 0 - 59
+};
+
+Time::Time( int hr, int min, int sec )
+{
+   setTime( hr, min, sec );
+}
+
+Time &amp;Time::setTime( int h, int m, int s )
+{
+   setHour( h );
+   setMinute( m );
+   setSecond( s );
+   return *this; // 연쇄 호출을 가능하게 함
+}
+
+Time &amp;Time::setHour( int h )
+{
+   if ( h &gt;= 0 &amp;&amp; h &lt; 24 )
+      hour = h;
+   else
+      throw invalid_argument( "hour must be 0-23" );
+   return *this;
+}
+
+Time &amp;Time::setMinute( int m )
+{
+   if ( m &gt;= 0 &amp;&amp; m &lt; 60 )
+      minute = m;
+   else
+      throw invalid_argument( "minute must be 0-59" );
+   return *this;
+}
+
+Time &amp;Time::setSecond( int s )
+{
+   if ( s &gt;= 0 &amp;&amp; s &lt; 60 )
+      second = s;
+   else
+      throw invalid_argument( "second must be 0-59" );
+   return *this;
+}
+
+unsigned int Time::getHour() const { return hour; }
+unsigned int Time::getMinute() const { return minute; }
+unsigned int Time::getSecond() const { return second; }
+
+void Time::printUniversal() const
+{
+   cout &lt;&lt; setfill( '0' ) &lt;&lt; setw( 2 ) &lt;&lt; hour &lt;&lt; ":"
+      &lt;&lt; setw( 2 ) &lt;&lt; minute &lt;&lt; ":" &lt;&lt; setw( 2 ) &lt;&lt; second;
+}
+
+void Time::printStandard() const
+{
+   cout &lt;&lt; ( ( hour == 0 || hour == 12 ) ? 12 : hour % 12 )
+      &lt;&lt; ":" &lt;&lt; setfill( '0' ) &lt;&lt; setw( 2 ) &lt;&lt; minute
+      &lt;&lt; ":" &lt;&lt; setw( 2 ) &lt;&lt; second &lt;&lt; ( hour &lt; 12 ? " AM" : " PM" );
+}
+
+int main()
+{
+   Time t;
+
+   // 연쇄 호출: 한 문장에서 세 set 함수를 이어서 호출
+   t.setHour( 18 ).setMinute( 30 ).setSecond( 22 );
+
+   cout &lt;&lt; "Universal time: ";
+   t.printUniversal();
+   cout &lt;&lt; "\nStandard time: ";
+   t.printStandard();
+
+   int h, m, s;
+   cout &lt;&lt; "\n\n시, 분, 초를 입력하세요: ";
+   if ( !( cin &gt;&gt; h &gt;&gt; m &gt;&gt; s ) )
+   {
+      cout &lt;&lt; "숫자를 입력해야 합니다." &lt;&lt; endl;
+      return 1;
+   }
+
+   try
+   {
+      t.setHour( h ).setMinute( m ).setSecond( s ); // 입력값도 연쇄 호출로 설정
+   }
+   catch ( invalid_argument &amp;e )
+   {
+      cout &lt;&lt; "예외 발생: " &lt;&lt; e.what() &lt;&lt; endl;
+   }
+
+   cout &lt;&lt; "현재 객체 상태 -&gt; ";
+   t.printUniversal();
+   cout &lt;&lt; " / ";
+   t.printStandard();
+   cout &lt;&lt; endl;
+}</pre>
+          <p class="hint-note"><code>t.setHour( 18 ).setMinute( 30 )</code>에서 <code>.setMinute</code>는 <code>setHour</code>가 돌려준 <b>t 자신에 대한 참조</b>에 적용됩니다. 반환형을 <code>Time</code>(값)으로 바꿔 보면 두 번째 호출부터는 복사본에 적용되어 18:00:00이 출력됩니다(01 퀴즈 참고). 실행 예시 ②에서는 연쇄 도중 예외가 나서 앞쪽 setHour만 반영되고 뒤쪽 setSecond는 실행되지 않았습니다. 4주차 과제 1에서 본 '일부만 반영된 상태'가 연쇄 호출에서도 똑같이 생깁니다.</p>
+        </div>
+      </details>
+    </div>
+    <div class="icard">
+      <div class="itag">과제 2 · [난이도 중] static 멤버 — 현재 객체 수와 누적 사번</div>
+      <p class="desc">교재 그림 9.27~9.29의 Employee 클래스를 확장합니다. 모든 객체가 공유하는 static 데이터 멤버 두 개로 '지금 메모리에 있는 객체 수'와 '지금까지 발급한 사번'을 따로 관리합니다.</p>
+      <p class="cond">조건: 비static 멤버 <code>firstName</code>, <code>lastName</code>, <code>id</code> · static 데이터 멤버 <code>count</code>(현재 객체 수), <code>nextId</code>(누적 발급 수) — 둘 다 private · 클래스 밖에서 <code>unsigned int Employee::count = 0;</code> 형식으로 정의(static 키워드 없이) · static 멤버 함수 <code>getCount()</code>, <code>getIssued()</code> · 생성자에서 <code>id( ++nextId )</code>로 사번을 발급하고 <code>++count</code>, 소멸자에서는 <code>--count</code>만 한다(사번은 되돌리지 않음) · 생성자·소멸자에 메시지 출력 · main에서 객체 생성 전, main의 지역 객체 생성 후, 내부 블록 안과 밖에서 각각 <b>클래스 이름으로</b> static 함수를 호출해 두 값을 출력</p>
+<p class="runlabel">실행 예시 — 입력 없음 (전체 출력)</p><pre class="run">객체 생성 전: count = 0, issued = 0
+
+Employee constructor for Susan Baker (id 1) called.
+Employee constructor for Robert Jones (id 2) called.
+Employee constructor for Lisa Kim (id 3) called.
+블록 안: count = 3, issued = 3
+
+~Employee() called for Lisa Kim
+~Employee() called for Robert Jones
+
+블록 밖: count = 1, issued = 3
+
+Employee constructor for Tom Lee (id 4) called.
+e4의 사번 = 4, count = 2, issued = 4
+
+~Employee() called for Tom Lee
+~Employee() called for Susan Baker</pre>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 과제 2 · static 데이터 멤버와 static 멤버 함수 (교재 그림 9.27~9.29 기반)
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+class Employee
+{
+public:
+   Employee( const string &amp;, const string &amp; );
+   ~Employee();
+   string getFirstName() const;
+   string getLastName() const;
+   unsigned int getId() const;
+
+   // static 멤버 함수 — 객체가 없어도 호출할 수 있다
+   static unsigned int getCount();   // 현재 메모리에 있는 객체 수
+   static unsigned int getIssued();  // 지금까지 발급한 사번 수
+private:
+   string firstName;
+   string lastName;
+   unsigned int id; // 객체마다 고유한 사번
+
+   // static 데이터 멤버 — 모든 객체가 하나를 공유한다
+   static unsigned int count;
+   static unsigned int nextId;
+};
+
+// 클래스 밖에서 정의하고 초기화 — static 키워드는 쓰지 않는다
+unsigned int Employee::count = 0;
+unsigned int Employee::nextId = 0;
+
+unsigned int Employee::getCount() { return count; }
+unsigned int Employee::getIssued() { return nextId; }
+
+Employee::Employee( const string &amp;first, const string &amp;last )
+   : firstName( first ), lastName( last ), id( ++nextId )
+{
+   ++count;
+   cout &lt;&lt; "Employee constructor for " &lt;&lt; firstName &lt;&lt; ' ' &lt;&lt; lastName
+      &lt;&lt; " (id " &lt;&lt; id &lt;&lt; ") called." &lt;&lt; endl;
+}
+
+Employee::~Employee()
+{
+   cout &lt;&lt; "~Employee() called for " &lt;&lt; firstName &lt;&lt; ' ' &lt;&lt; lastName &lt;&lt; endl;
+   --count; // 사번(nextId)은 되돌리지 않는다
+}
+
+string Employee::getFirstName() const { return firstName; }
+string Employee::getLastName() const { return lastName; }
+unsigned int Employee::getId() const { return id; }
+
+int main()
+{
+   cout &lt;&lt; "객체 생성 전: count = " &lt;&lt; Employee::getCount()
+      &lt;&lt; ", issued = " &lt;&lt; Employee::getIssued() &lt;&lt; "\n\n";
+
+   Employee e1( "Susan", "Baker" );
+
+   {
+      Employee e2( "Robert", "Jones" );
+      Employee e3( "Lisa", "Kim" );
+      cout &lt;&lt; "블록 안: count = " &lt;&lt; Employee::getCount()
+         &lt;&lt; ", issued = " &lt;&lt; Employee::getIssued() &lt;&lt; "\n\n";
+   } // e3, e2 소멸
+
+   cout &lt;&lt; "\n블록 밖: count = " &lt;&lt; Employee::getCount()
+      &lt;&lt; ", issued = " &lt;&lt; Employee::getIssued() &lt;&lt; "\n\n";
+
+   Employee e4( "Tom", "Lee" );
+   cout &lt;&lt; "e4의 사번 = " &lt;&lt; e4.getId()
+      &lt;&lt; ", count = " &lt;&lt; Employee::getCount()
+      &lt;&lt; ", issued = " &lt;&lt; Employee::getIssued() &lt;&lt; "\n\n";
+}</pre>
+          <p class="hint-note">확인할 점 세 가지입니다. 첫째, 객체를 하나도 만들기 전에도 <code>Employee::getCount()</code>를 호출할 수 있습니다 — static 멤버는 객체와 상관없이 존재하기 때문입니다. 둘째, 마지막에 count는 2인데 Tom의 사번은 4입니다. count는 소멸할 때 줄어들지만 nextId는 줄이지 않으므로 '현재 수'와 '누적 수'가 달라집니다. 셋째, 블록 안의 객체는 만든 순서의 <b>역순</b>(Lisa → Robert)으로 소멸합니다.</p>
+        </div>
+      </details>
+    </div>
+    <div class="icard">
+      <div class="itag">과제 3 · [난이도 중] 스트림 삽입·추출 연산자 오버로딩 — PhoneNumber 입력 형식 검사</div>
+      <p class="desc">교재 그림 10.3~10.5의 PhoneNumber 클래스를 만들고, 교재가 '올바른 형식으로 입력된다고 가정'했던 operator&gt;&gt;에 형식 검사를 추가합니다.</p>
+      <p class="cond">조건: private 멤버 <code>string areaCode, exchange, line</code> · <code>operator&lt;&lt;</code>와 <code>operator&gt;&gt;</code>를 <b>비멤버 friend 함수</b>로 선언 · <code>operator&lt;&lt;</code>는 <code>const PhoneNumber &amp;</code>를 받고 <code>ostream &amp;</code>를 반환, <code>(800) 555-1212</code> 형식으로 출력 · <code>operator&gt;&gt;</code>는 <code>PhoneNumber &amp;</code>를 받고 <code>istream &amp;</code>를 반환 · 입력에서 <code>(</code>, <code>) </code>, <code>-</code> 위치와 각 부분의 자릿수(3·3·4), 숫자 여부를 확인하고, 틀리면 <code>input.setstate( ios::failbit );</code>로 실패를 알리며 <b>객체는 바꾸지 않는다</b> · main에서 <code>if ( cin &gt;&gt; phone )</code>으로 성공 여부를 판정</p>
+<p class="runlabel">실행 예시 ① — 올바른 형식</p><pre class="run">Enter phone number in the form (123) 456-7890:
+<span class="in">(800) 555-1212</span>
+The phone number entered was: (800) 555-1212</pre><p class="runlabel">실행 예시 ② — ')' 뒤 공백 없음</p><pre class="run">Enter phone number in the form (123) 456-7890:
+<span class="in">(800)555-1212</span>
+형식이 올바르지 않습니다.</pre><p class="runlabel">실행 예시 ③ — 괄호 없음</p><pre class="run">Enter phone number in the form (123) 456-7890:
+<span class="in">800-555-1212</span>
+형식이 올바르지 않습니다.</pre><p class="runlabel">실행 예시 ④ — 지역 번호 자릿수 부족</p><pre class="run">Enter phone number in the form (123) 456-7890:
+<span class="in">(80) 555-1212</span>
+형식이 올바르지 않습니다.</pre><p class="runlabel">실행 예시 ⑤ — 숫자가 아닌 문자</p><pre class="run">Enter phone number in the form (123) 456-7890:
+<span class="in">(8a0) 555-1212</span>
+형식이 올바르지 않습니다.</pre>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 과제 3 · 스트림 삽입·추출 연산자 오버로딩 + 입력 형식 검사 (교재 그림 10.3~10.5 기반)
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include &lt;string&gt;
+#include &lt;cctype&gt;
+using namespace std;
+
+class PhoneNumber
+{
+   friend ostream &amp;operator&lt;&lt;( ostream &amp;, const PhoneNumber &amp; );
+   friend istream &amp;operator&gt;&gt;( istream &amp;, PhoneNumber &amp; );
+private:
+   string areaCode; // 3자리 지역 번호
+   string exchange; // 3자리 국번
+   string line;     // 4자리 번호
+};
+
+// 모든 문자가 숫자이고 길이가 len인지 검사
+bool isDigits( const string &amp;s, size_t len )
+{
+   if ( s.size() != len )
+      return false;
+   for ( char c : s )
+      if ( !isdigit( static_cast&lt;unsigned char&gt;( c ) ) )
+         return false;
+   return true;
+}
+
+ostream &amp;operator&lt;&lt;( ostream &amp;output, const PhoneNumber &amp;number )
+{
+   output &lt;&lt; "(" &lt;&lt; number.areaCode &lt;&lt; ") "
+      &lt;&lt; number.exchange &lt;&lt; "-" &lt;&lt; number.line;
+   return output; // cout &lt;&lt; a &lt;&lt; b &lt;&lt; c; 연쇄를 가능하게 함
+}
+
+istream &amp;operator&gt;&gt;( istream &amp;input, PhoneNumber &amp;number )
+{
+   PhoneNumber temp; // 검사를 모두 통과했을 때만 number에 반영
+
+   input &gt;&gt; ws;                                   // 앞쪽 공백 건너뜀
+   if ( input.get() != '(' )                      // '(' 확인
+   {
+      input.setstate( ios::failbit );
+      return input;
+   }
+   input &gt;&gt; setw( 3 ) &gt;&gt; temp.areaCode;           // 지역 번호
+   if ( input.get() != ')' || input.get() != ' ' ) // ") " 확인
+   {
+      input.setstate( ios::failbit );
+      return input;
+   }
+   input &gt;&gt; setw( 3 ) &gt;&gt; temp.exchange;           // 국번
+   if ( input.get() != '-' )                      // '-' 확인
+   {
+      input.setstate( ios::failbit );
+      return input;
+   }
+   input &gt;&gt; setw( 4 ) &gt;&gt; temp.line;               // 번호
+
+   if ( !isDigits( temp.areaCode, 3 ) || !isDigits( temp.exchange, 3 )
+        || !isDigits( temp.line, 4 ) )
+   {
+      input.setstate( ios::failbit );
+      return input;
+   }
+
+   number = temp;
+   return input; // cin &gt;&gt; a &gt;&gt; b &gt;&gt; c; 연쇄를 가능하게 함
+}
+
+int main()
+{
+   PhoneNumber phone;
+
+   cout &lt;&lt; "Enter phone number in the form (123) 456-7890:" &lt;&lt; endl;
+
+   if ( cin &gt;&gt; phone ) // operator&gt;&gt;( cin, phone ) 호출 후 스트림 상태 검사
+      cout &lt;&lt; "The phone number entered was: " &lt;&lt; phone &lt;&lt; endl;
+   else
+      cout &lt;&lt; "형식이 올바르지 않습니다." &lt;&lt; endl;
+}</pre>
+          <p class="hint-note"><code>cin &gt;&gt; phone</code>은 컴파일러가 <code>operator&gt;&gt;( cin, phone )</code>으로 바꿔 호출합니다. 왼쪽 피연산자가 우리 클래스가 아니므로 멤버가 될 수 없고, private에 접근해야 하므로 friend로 선언합니다. 입력을 임시 객체 temp에 먼저 읽고 모든 검사를 통과했을 때만 <code>number = temp;</code>로 반영하기 때문에, 실패해도 원래 객체는 그대로입니다. 그리고 operator&gt;&gt;가 istream &amp;를 반환하므로 <code>if ( cin &gt;&gt; phone )</code>처럼 스트림 상태로 성공 여부를 바로 검사할 수 있습니다.</p>
+        </div>
+      </details>
+    </div>
+    <div class="icard">
+      <div class="itag">도전 과제 · [난이도 중~상] Time 클래스에 &lt;&lt; &gt;&gt; 오버로딩 — 형식 오류와 값 오류 구분</div>
+      <p class="desc">과제 1의 Time 클래스에 스트림 삽입·추출 연산자를 추가해 <code>HH:MM:SS</code> 형식으로 입출력합니다. 9장의 Time과 10장의 연산자 오버로딩을 하나로 묶는 종합 과제입니다.</p>
+      <p class="cond">조건: <code>operator&lt;&lt;</code>, <code>operator&gt;&gt;</code>를 friend 비멤버 함수로 선언 · <code>operator&lt;&lt;</code>는 두 자리 0 채움으로 <code>09:05:03</code>처럼 출력하고, 출력 뒤 채움 문자를 공백으로 되돌린다 · <code>operator&gt;&gt;</code>는 <code>시:분:초</code>를 읽는다 — 구분자가 <code>:</code>가 아니거나 숫자를 읽지 못하면 <b>형식 오류</b>로 보고 failbit를 세운다 · 값의 범위 검사는 직접 하지 말고 <b>setTime을 호출해</b> set 함수가 던지는 invalid_argument를 그대로 전파시킨다(<b>값 오류</b>) · main에서 <code>cin &gt;&gt; start &gt;&gt; end</code>로 두 시각을 연쇄 입력하고, 형식 오류와 값 오류를 서로 다른 메시지로 출력</p>
+<p class="runlabel">실행 예시 ① — 정상 입력</p><pre class="run">시작 시각과 종료 시각을 입력하세요 (HH:MM:SS HH:MM:SS): <span class="in">09:05:03 18:30:00</span>
+start = 09:05:03, end = 18:30:00</pre><p class="runlabel">실행 예시 ② — 한 자리 입력 (출력은 두 자리로)</p><pre class="run">시작 시각과 종료 시각을 입력하세요 (HH:MM:SS HH:MM:SS): <span class="in">9:5:3 23:59:59</span>
+start = 09:05:03, end = 23:59:59</pre><p class="runlabel">실행 예시 ③ — 형식 오류 (구분자가 '-')</p><pre class="run">시작 시각과 종료 시각을 입력하세요 (HH:MM:SS HH:MM:SS): <span class="in">10:20:30 10-20-30</span>
+형식이 올바르지 않습니다.</pre><p class="runlabel">실행 예시 ④ — 값 오류 (범위 밖)</p><pre class="run">시작 시각과 종료 시각을 입력하세요 (HH:MM:SS HH:MM:SS): <span class="in">10:20:30 24:00:00</span>
+예외 발생: hour must be 0-23</pre>
+      <details class="reveal">
+        <summary>모범 답안 보기</summary>
+        <div class="answer">
+<pre>// 도전 과제 · Time 클래스에 &lt;&lt; &gt;&gt; 오버로딩 (9장 Time + 10.5 종합)
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include &lt;stdexcept&gt;
+using namespace std;
+
+class Time
+{
+   friend ostream &amp;operator&lt;&lt;( ostream &amp;, const Time &amp; );
+   friend istream &amp;operator&gt;&gt;( istream &amp;, Time &amp; );
+public:
+   explicit Time( int = 0, int = 0, int = 0 );
+   Time &amp;setTime( int, int, int );
+   Time &amp;setHour( int );
+   Time &amp;setMinute( int );
+   Time &amp;setSecond( int );
+private:
+   unsigned int hour = 0;
+   unsigned int minute = 0;
+   unsigned int second = 0;
+};
+
+Time::Time( int h, int m, int s ) { setTime( h, m, s ); }
+
+Time &amp;Time::setTime( int h, int m, int s )
+{
+   setHour( h );
+   setMinute( m );
+   setSecond( s );
+   return *this;
+}
+
+Time &amp;Time::setHour( int h )
+{
+   if ( h &lt; 0 || h &gt; 23 )
+      throw invalid_argument( "hour must be 0-23" );
+   hour = h;
+   return *this;
+}
+
+Time &amp;Time::setMinute( int m )
+{
+   if ( m &lt; 0 || m &gt; 59 )
+      throw invalid_argument( "minute must be 0-59" );
+   minute = m;
+   return *this;
+}
+
+Time &amp;Time::setSecond( int s )
+{
+   if ( s &lt; 0 || s &gt; 59 )
+      throw invalid_argument( "second must be 0-59" );
+   second = s;
+   return *this;
+}
+
+// HH:MM:SS 형식으로 출력
+ostream &amp;operator&lt;&lt;( ostream &amp;output, const Time &amp;t )
+{
+   output &lt;&lt; setfill( '0' ) &lt;&lt; setw( 2 ) &lt;&lt; t.hour &lt;&lt; ":"
+      &lt;&lt; setw( 2 ) &lt;&lt; t.minute &lt;&lt; ":" &lt;&lt; setw( 2 ) &lt;&lt; t.second
+      &lt;&lt; setfill( ' ' ); // 채움 문자를 원래대로 되돌림
+   return output;
+}
+
+// HH:MM:SS 형식으로 입력
+//  - 형식 오류(구분자가 ':'이 아님, 숫자가 아님) → failbit
+//  - 값 오류(범위 밖) → set 함수가 던진 invalid_argument가 그대로 전파
+istream &amp;operator&gt;&gt;( istream &amp;input, Time &amp;t )
+{
+   int h, m, s;
+   char c1, c2;
+
+   if ( input &gt;&gt; h &gt;&gt; c1 &gt;&gt; m &gt;&gt; c2 &gt;&gt; s &amp;&amp; c1 == ':' &amp;&amp; c2 == ':' )
+      t.setTime( h, m, s );
+   else
+      input.setstate( ios::failbit );
+
+   return input;
+}
+
+int main()
+{
+   Time start, end;
+
+   cout &lt;&lt; "시작 시각과 종료 시각을 입력하세요 (HH:MM:SS HH:MM:SS): ";
+
+   try
+   {
+      if ( cin &gt;&gt; start &gt;&gt; end ) // 연쇄 입력
+         cout &lt;&lt; "start = " &lt;&lt; start &lt;&lt; ", end = " &lt;&lt; end &lt;&lt; endl;
+      else
+         cout &lt;&lt; "형식이 올바르지 않습니다." &lt;&lt; endl;
+   }
+   catch ( invalid_argument &amp;e )
+   {
+      cout &lt;&lt; "예외 발생: " &lt;&lt; e.what() &lt;&lt; endl;
+   }
+}</pre>
+          <p class="hint-note">같은 '잘못된 입력'이라도 두 종류로 나누어 처리했습니다. <b>형식 오류</b>는 입력 스트림의 문제이므로 스트림 상태(failbit)로 알리고, <b>값 오류</b>는 Time 객체의 규칙 위반이므로 set 함수의 예외로 알립니다. operator&gt;&gt;가 범위 검사를 다시 구현하지 않고 setTime에 맡겼기 때문에, 검사 규칙은 set 함수 한 곳에만 있습니다. 또 operator&lt;&lt;가 마지막에 <code>setfill( ' ' )</code>로 되돌려 놓지 않으면, 그 뒤에 <code>setw</code>를 쓰는 다른 출력까지 0으로 채워진다는 점도 확인해 보세요.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Deitel 「C++ How to Program」 10/e 9장(9.12 프렌드 ~ 9.14 static 클래스 멤버)과 10장(10.1 ~ 10.5 스트림 삽입·추출 연산자 오버로딩) 학습 확인용 자료입니다.
+  실습과제의 모든 실행 예시는 실제로 컴파일·실행한 출력입니다.
+  강의자료의 [보충] 항목(inline static, static constexpr)과 10.6 이후 내용(단항 연산자, 동적 메모리, Array 클래스 등)은 이번 주 확인 범위에 포함되지 않습니다.
+</footer>
+
+<script>
+const questions = [
+  {
+    "prompt": "Engine 안에 friend class Car; 가 선언되어 있습니다. 다음 Engine의 멤버 함수는 컴파일될까요? (speed는 Car의 private 멤버)",
+    "options": [
+      "정상 컴파일된다",
+      "링크 오류가 발생한다",
+      "경고만 발생한다",
+      "컴파일 오류 — 프렌드 관계는 대칭이 아니므로 Engine은 Car의 private에 접근할 수 없다"
+    ],
+    "correct": 3,
+    "explanation": "friend class Car; 는 Car에게 Engine의 private을 열어 준 것일 뿐입니다. 프렌드 관계는 권한을 주는 쪽이 선언하며 대칭적이지 않으므로, Engine이 Car의 private에 접근하려면 Car 안에 friend class Engine; 이 따로 있어야 합니다.",
+    "code": "void Engine::peek(Car &c) {\n    c.speed = 1;\n}"
+  },
+  {
+    "prompt": "Engine 정의 안에 friend void Car::start(); 만 선언했습니다. Car::stop() 안에서 e.running = false; (running은 Engine의 private)를 쓰면?",
+    "options": [
+      "컴파일 오류 — 권한은 Car::start 하나에만 주어졌다",
+      "Car 전체가 프렌드가 되어 정상 동작한다",
+      "stop이 start를 호출하면 정상 동작한다",
+      "실행 중에 예외가 발생한다"
+    ],
+    "correct": 0,
+    "explanation": "friend void Car::start(); 는 함수 단위의 프렌드 선언입니다. 클래스 전체에 권한을 주는 friend class Car; 와 달리 start 하나만 private에 접근할 수 있으므로 stop에서는 'is private within this context' 오류가 납니다."
+  },
+  {
+    "prompt": "다음 중 프렌드를 사용하기에 가장 적절한 경우는?",
+    "options": [
+      "getter를 만들기 귀찮을 때",
+      "여러 클래스를 한꺼번에 프렌드로 선언하고 싶을 때",
+      "public 멤버 함수를 더 빠르게 호출하고 싶을 때",
+      "private 멤버를 출력해야 하는 operator<<를 만들 때"
+    ],
+    "correct": 3,
+    "explanation": "operator<<와 operator>>는 멤버 함수가 될 수 없어서 비멤버로 만들어야 하고, private 데이터를 출력하려면 프렌드로 선언하는 것이 관례입니다. getter가 귀찮다는 이유나 무더기 프렌드 선언은 캡슐화를 무너뜨리므로 피해야 합니다."
+  },
+  {
+    "prompt": "아래는 교재 Fig 9.23의 Test 클래스입니다. int가 4바이트인 환경에서 Test testObject( 12 ); 로 만든 객체의 sizeof( testObject ) 값은?",
+    "options": [
+      "12",
+      "8",
+      "4",
+      "16"
+    ],
+    "correct": 2,
+    "explanation": "데이터 멤버는 int x 하나뿐이므로 4바이트입니다. this 포인터는 객체 안에 저장되지 않고, 비static 멤버 함수를 호출할 때 컴파일러가 암묵적 인수로 넘겨 줍니다. 그래서 sizeof에 포함되지 않습니다. 멤버 함수(생성자, print)도 객체 크기에 들어가지 않습니다. 12는 생성자에 넘긴 값과 헷갈린 경우입니다.",
+    "code": "class Test\n{\npublic:\n   explicit Test( int = 0 ); // default constructor\n   void print() const;\nprivate:\n   int x;\n}; // end class Test"
+  },
+  {
+    "prompt": "Test::print() 안에서 다음과 같이 쓰면 어떻게 될까요?",
+    "options": [
+      "x의 값이 출력된다",
+      "컴파일 오류 — .이 *보다 먼저 결합해 this.x가 되는데 this는 포인터다",
+      "x의 주소가 출력된다",
+      "0이 출력된다"
+    ],
+    "correct": 1,
+    "explanation": "멤버 선택 연산자 .은 역참조 연산자 *보다 우선순위가 높아서 *this.x는 *(this.x)로 해석됩니다. this는 포인터이므로 .을 쓸 수 없어 컴파일 오류가 납니다. 교재 주석처럼 (*this).x로 괄호를 치거나 this->x를 써야 합니다.",
+    "code": "cout << *this.x;"
+  },
+  {
+    "prompt": "set 함수 세 개가 Time &가 아니라 Time(값)을 반환하도록 잘못 만들었습니다. 출력은?",
+    "options": [
+      "18:30:22",
+      "18:00:00",
+      "00:00:00",
+      "컴파일 오류"
+    ],
+    "correct": 1,
+    "explanation": "첫 번째 호출 t.setHour(18)은 t 자신을 바꾸지만, 값으로 반환하므로 *this의 복사본(임시 객체)이 돌아옵니다. 이어지는 setMinute(30)과 setSecond(22)는 그 임시 복사본을 바꾸고 사라지므로 t에는 시만 반영됩니다. 연쇄 호출이 원래 객체에 적용되려면 반환형이 Time &여야 합니다.",
+    "code": "Time setHour( int h )   { hour = h;   return *this; }\nTime setMinute( int m ) { minute = m; return *this; }\nTime setSecond( int s ) { second = s; return *this; }\n...\nTime t;  // 00:00:00\nt.setHour( 18 ).setMinute( 30 ).setSecond( 22 );\nt.printUniversal();"
+  },
+  {
+    "prompt": "다음 static 멤버 함수는 컴파일될까요?",
+    "options": [
+      "x의 값을 반환한다",
+      "0을 반환한다",
+      "컴파일 오류 — static 멤버 함수에는 this 포인터가 없다",
+      "처음 만들어진 객체의 x를 반환한다"
+    ],
+    "correct": 2,
+    "explanation": "static 멤버 함수는 특정 객체가 아니라 클래스의 서비스이므로 this 포인터를 받지 않습니다. 따라서 this->x도, 비static 데이터 멤버 x도 사용할 수 없습니다.",
+    "code": "class C {\npublic:\n    static int f() { return this->x; }\n    int x;\n};"
+  },
+  {
+    "prompt": "교재 Fig 9.25의 Time으로 다음을 실행했습니다(t의 초기값 00:00:00). 출력은?",
+    "options": [
+      "10:75:05",
+      "00:00:00",
+      "10:00:05",
+      "minute must be 0-59 다음 줄에 10:00:00"
+    ],
+    "correct": 3,
+    "explanation": "setHour(10)은 성공해 t에 반영된 뒤, setMinute(75)에서 invalid_argument가 던져집니다. 예외가 나는 순간 연쇄 호출은 중단되므로 setSecond(5)는 실행되지 않습니다. 결과적으로 시만 바뀐 10:00:00이 남습니다.",
+    "code": "try {\n    t.setHour( 10 ).setMinute( 75 ).setSecond( 5 );\n}\ncatch ( invalid_argument &e ) {\n    cout << e.what() << endl;\n}\nt.printUniversal();"
+  },
+  {
+    "prompt": "Fig 9.28과 같은 Employee(생성자에서 ++count, 소멸자에서 --count)입니다. A·B·C에 출력되는 값은?",
+    "options": [
+      "0, 2, 1",
+      "0, 3, 1",
+      "0, 3, 3",
+      "1, 3, 1"
+    ],
+    "correct": 1,
+    "explanation": "A는 객체가 없으므로 0입니다. B 시점에는 e1, e2, e3가 살아 있어 3이며, 객체를 통해 static 함수를 호출해도(e1.getCount()) 같은 클래스 공유 값이 나옵니다. 블록이 끝나면 e3, e2 순서로 소멸해 C는 1입니다.",
+    "code": "cout << \"A: \" << Employee::getCount() << endl;\nEmployee e1( \"Susan\" );\n{\n    Employee e2( \"Robert\" );\n    Employee e3( \"Lisa\" );\n    cout << \"B: \" << e1.getCount() << endl;\n}\ncout << \"C: \" << Employee::getCount() << endl;"
+  },
+  {
+    "prompt": "다음 코드의 출력은? (교재 Fig 9.27/9.28의 Employee에서 count 부분만 남긴 코드입니다)",
+    "options": [
+      "쓰레기값",
+      "0",
+      "컴파일 오류",
+      "1"
+    ],
+    "correct": 1,
+    "explanation": "기본 자료형 static 데이터 멤버는 초기화자가 없어도 0으로 초기화됩니다. 일반 지역 변수처럼 쓰레기값이 들어가지 않습니다. 또 static 멤버는 객체가 하나도 없어도 존재하므로, 클래스 이름과 ::로 static 멤버 함수를 호출해 읽을 수 있습니다. 다만 교재처럼 = 0을 명시하는 것이 읽기 좋습니다.",
+    "code": "#include <iostream>\nusing namespace std;\n\nclass Employee\n{\npublic:\n   static unsigned int getCount();  // static 멤버 함수\nprivate:\n   static unsigned int count;       // static 데이터 멤버\n};\n\nunsigned int Employee::count;       // 초기화자 없이 정의 (= 0 을 쓰지 않음)\n\nunsigned int Employee::getCount()\n{\n   return count;\n}\n\nint main()\n{\n   // 아직 Employee 객체를 하나도 만들지 않았다\n   cout << Employee::getCount() << endl;\n}"
+  },
+  {
+    "prompt": "Employee 객체가 하나도 없을 때 private static 데이터 멤버 count의 값을 읽는 올바른 방법은?",
+    "options": [
+      "Employee::count",
+      "this->count",
+      "Employee::getCount() — public static 멤버 함수를 클래스 이름으로 호출",
+      "객체가 없으면 읽을 수 없다"
+    ],
+    "correct": 2,
+    "explanation": "static 멤버는 객체가 없어도 존재합니다. 하지만 private이므로 Employee::count로 직접 접근할 수는 없고, public static 멤버 함수를 제공해 클래스 이름과 스코프 결정 연산자로 호출해야 합니다. 객체가 없으므로 this도 사용할 수 없습니다."
+  },
+  {
+    "prompt": "다음 두 호출의 결과는?",
+    "options": [
+      "\"happy birthday \", \"o you\"",
+      "\"happy birthday\", \"to you\"",
+      "\"happy birthda\", \"to you\"",
+      "\"happy\", \"birthday to you\""
+    ],
+    "correct": 1,
+    "explanation": "substr(0, 14)는 위치 0부터 14개 문자, 즉 happy birthday(14자)입니다. substr(15)는 위치 15부터 끝까지이므로 14번 위치의 공백 다음인 to you가 됩니다.",
+    "code": "string s1( \"happy birthday to you\" );\ns1.substr( 0, 14 );\ns1.substr( 15 );"
+  },
+  {
+    "prompt": "다음 코드를 실행하면?",
+    "options": [
+      "쓰레기 문자가 출력된다",
+      "'o'가 출력된다",
+      "out_of_range 예외가 잡혀 catch 블록이 실행된다",
+      "컴파일 오류가 발생한다"
+    ],
+    "correct": 2,
+    "explanation": "at은 경계 검사를 하므로 유효하지 않은 첨자에 out_of_range 예외를 던집니다. 반면 s[10]처럼 []를 쓰면 범위 검사를 하지 않아 동작이 정의되지 않습니다. 첨자가 사용자 입력에서 오는 경우에는 at을 씁니다.",
+    "code": "string s( \"hello\" );\ntry {\n    cout << s.at( 10 ) << endl;\n}\ncatch ( out_of_range &e ) {\n    cout << \"out_of_range 발생\" << endl;\n}"
+  },
+  {
+    "prompt": "클래스에서 오버로딩하지 않아도 그 클래스의 객체에 바로 사용할 수 있는 세 연산자는?",
+    "options": [
+      "+, -, ==",
+      "<<, >>, []",
+      "++, --, ()",
+      "=, &, , (대입, 주소, 쉼표)"
+    ],
+    "correct": 3,
+    "explanation": "대입 연산자(=)는 멤버별 대입이 기본 제공되고, 주소 연산자(&)는 객체의 주소를, 쉼표 연산자(,)는 왼쪽에서 오른쪽으로 평가해 오른쪽 값을 돌려줍니다. 그 밖의 연산자는 직접 오버로딩해야 합니다. 기본 =는 얕은 복사이므로 포인터 멤버가 있으면 직접 정의해야 합니다."
+  },
+  {
+    "prompt": "오버로딩할 수 없는 연산자만 모은 것은?",
+    "options": [
+      ". .* :: ?:",
+      "[] () -> ,",
+      "new delete && ||",
+      "<< >> ! ~"
+    ],
+    "correct": 0,
+    "explanation": "멤버 선택(.), 멤버 포인터 선택(.*), 스코프 결정(::), 조건(?:) 연산자는 오버로딩할 수 없습니다. 이들은 이름·타입·범위를 결정하는 문법 요소에 가까워 의미를 바꾸면 언어 자체가 흔들리기 때문입니다. 나머지 보기의 연산자는 모두 오버로딩할 수 있습니다."
+  },
+  {
+    "prompt": "N 클래스에 멤버 operator+와 operator*를 정의하고, 각각 호출될 때 +(a,b), *(a,b)를 출력하게 했습니다. a=2, b=3, c=4일 때 N d = a + b * c; 의 출력은?",
+    "options": [
+      "+(2,3) *(5,4) => 20",
+      "컴파일 오류",
+      "*(3,4) +(2,12) => 14",
+      "+(2,3) *(5,4) => 14"
+    ],
+    "correct": 2,
+    "explanation": "연산자를 오버로딩해도 우선순위와 결합 방향, 피연산자 개수는 바뀌지 않습니다. 따라서 b * c가 먼저 계산되고 그 결과에 a가 더해집니다. 순서를 바꾸고 싶다면 괄호를 써야 합니다."
+  },
+  {
+    "prompt": "N 클래스에는 operator+만 정의되어 있고 대입 연산자는 기본 제공되는 것을 씁니다. 다음 두 줄은?",
+    "options": [
+      "a += b; 에서 컴파일 오류 — +=는 자동으로 만들어지지 않는다",
+      "둘 다 정상 컴파일된다",
+      "a = a + b; 에서 컴파일 오류",
+      "실행 중 오류가 발생한다"
+    ],
+    "correct": 0,
+    "explanation": "+와 =가 있어도 +=는 자동으로 생기지 않습니다. 연산자는 각각 명시적으로 오버로딩해야 합니다. 실무 관례는 +=를 먼저 구현하고 +는 +=를 이용해 작성하는 것입니다.",
+    "code": "a = a + b;\na += b;"
+  },
+  {
+    "prompt": "[연산자 오버로딩 3원칙] 반환형이 올바르게 짝지어진 것은?",
+    "options": [
+      "a + b → 값,  a += b → T&,  ++a → T&,  a++ → 값",
+      "a + b → T&,  a += b → 값",
+      "++a → 값,  a++ → T&",
+      "모두 void를 반환한다"
+    ],
+    "correct": 0,
+    "explanation": "a + b는 새 값을 만들어 내므로 값으로 반환하고, a += b와 ++a는 자기 자신을 바꾼 뒤 자기 참조를 반환합니다. a++는 바뀌기 전의 값을 돌려줘야 하므로 값으로 반환합니다. 스트림 연산자는 연쇄를 위해 스트림 참조를 반환합니다."
+  },
+  {
+    "prompt": "operator<<를 PhoneNumber의 멤버 함수로 만들면 쓸 수 있는 형태는?",
+    "options": [
+      "cout << phone",
+      "둘 다 쓸 수 있다",
+      "둘 다 쓸 수 없다",
+      "phone << cout"
+    ],
+    "correct": 3,
+    "explanation": "멤버 연산자 함수는 왼쪽 피연산자.operator기호(오른쪽 피연산자)로 호출됩니다. 멤버로 만든 operator<<는 phone.operator<<(cout), 즉 phone << cout 형태로만 쓸 수 있습니다. cout << phone은 ostream 클래스의 멤버를 찾게 되는데, 우리가 ostream에 멤버를 추가할 수는 없으므로 컴파일 오류가 납니다. 그래서 스트림 연산자는 비멤버(보통 friend) 함수로 만듭니다."
+  },
+  {
+    "prompt": "교재 Fig 10.4의 operator>>(ignore 후 setw로 읽음)에 (800) 555-1212 (032) 860-7777을 한 줄로 입력하고 cin >> p1 >> p2; 한 뒤 두 번호를 출력하면?",
+    "options": [
+      "(800) 555-1212 / ((03) 860-7777",
+      "(800) 555-1212 / (032) 860-7777",
+      "컴파일 오류",
+      "두 번째 입력은 무시된다"
+    ],
+    "correct": 0,
+    "explanation": "연쇄 입력 자체는 operator>>가 istream &를 반환하므로 동작합니다. 하지만 p1을 읽은 뒤 공백이 스트림에 남아 있어서, p2의 첫 ignore()가 '(' 대신 공백을 버립니다. 그 결과 setw(3)이 '(03'을 지역 번호로 읽습니다. 교재가 '올바른 형식으로 입력된다고 가정한다'고 밝힌 이유를 보여 주는 예입니다."
+  },
+  {
+    "prompt": "operator<<의 두 번째 매개변수에서 const를 빼고 선언했습니다. 다음 코드는?",
+    "options": [
+      "정상 출력된다",
+      "빈 문자열이 출력된다",
+      "경고만 발생한다",
+      "컴파일 오류 — const 객체는 비const 참조에 묶일 수 없다"
+    ],
+    "correct": 3,
+    "explanation": "const 객체 p를 PhoneNumber &에 넘기려면 const를 버려야 하므로 허용되지 않습니다. 출력은 객체를 바꾸지 않으므로 교재처럼 const PhoneNumber &로 받아야 const 객체도 출력할 수 있습니다.",
+    "code": "friend ostream &operator<<( ostream &, PhoneNumber & );  // const 없음\n...\nconst PhoneNumber p;\ncout << p;"
+  }
+];
+
+const debugProblems = [
+  {
+    "title": "문제 1 · 컴파일 오류 찾기",
+    "desc": "PhoneNumber의 private 멤버를 출력하려고 operator<<를 friend로 선언했는데 컴파일되지 않습니다. 무엇이 잘못됐을까요?",
+    "code": [
+      "class PhoneNumber",
+      "{",
+      "   friend ostream &operator<<( ostream &, const PhoneNumber & );",
+      "private:",
+      "   string areaCode;",
+      "   string exchange;",
+      "   string line;",
+      "};",
+      "",
+      "ostream &PhoneNumber::operator<<( ostream &output, const PhoneNumber &number )",
+      "{",
+      "   output << \"(\" << number.areaCode << \") \" << number.exchange << \"-\" << number.line;",
+      "   return output;",
+      "}"
+    ],
+    "highlight": 9,
+    "answer": "friend로 선언한 함수는 <b>멤버 함수가 아니라 비멤버 함수</b>입니다. 그런데 정의에서 <code>PhoneNumber::</code>를 붙여 멤버 함수처럼 정의했습니다. 컴파일러는 이것을 멤버 operator&lt;&lt;로 보고, 멤버 이항 연산자는 매개변수가 하나(왼쪽은 this)여야 하는데 둘이라서 오류를 냅니다. <code>ostream &amp;operator&lt;&lt;( ostream &amp;output, const PhoneNumber &amp;number )</code>처럼 <code>PhoneNumber::</code>를 빼면 해결됩니다."
+  },
+  {
+    "title": "문제 2 · 컴파일 오류 찾기",
+    "desc": "static 데이터 멤버를 클래스 밖에서 정의했는데 컴파일되지 않습니다. 왜일까요?",
+    "code": [
+      "class Employee",
+      "{",
+      "public:",
+      "   static unsigned int getCount();",
+      "private:",
+      "   static unsigned int count;",
+      "};",
+      "",
+      "static unsigned int Employee::count = 0;"
+    ],
+    "highlight": 8,
+    "answer": "클래스 밖에서 static 데이터 멤버를 <b>정의할 때는 static 키워드를 쓸 수 없습니다</b>. static은 클래스 안의 선언에만 붙입니다. 교재 Fig 9.28의 주석 <code>// cannot include keyword static</code>이 바로 이 점을 말합니다. <code>unsigned int Employee::count = 0;</code>으로 고치면 됩니다."
+  },
+  {
+    "title": "문제 3 · 빌드 오류 찾기",
+    "desc": "헤더와 main은 문제없이 컴파일됩니다. 그런데 빌드하면 오류가 납니다. 어느 단계에서 어떤 오류가 날까요?",
+    "code": [
+      "// Employee.h",
+      "#pragma once",
+      "class Employee",
+      "{",
+      "public:",
+      "   static unsigned int getCount() { return count; }",
+      "private:",
+      "   static unsigned int count;   // 선언만 있음",
+      "};",
+      "",
+      "// main.cpp",
+      "#include <iostream>",
+      "#include \"Employee.h\"",
+      "int main()",
+      "{",
+      "   std::cout << Employee::getCount();",
+      "}"
+    ],
+    "highlight": 7,
+    "answer": "컴파일은 성공하지만 <b>링크 단계에서 오류</b>(Visual Studio: <code>LNK2001: 확인할 수 없는 외부 기호</code>)가 납니다. 클래스 안의 <code>static unsigned int count;</code>는 <b>선언</b>일 뿐, 메모리를 잡는 <b>정의</b>가 아닙니다. 교재처럼 Employee.cpp에 <code>unsigned int Employee::count = 0;</code> 정의를 정확히 한 번 두어야 합니다."
+  },
+  {
+    "title": "문제 4 · 컴파일 오류 찾기",
+    "desc": "객체 없이도 이름을 얻으려고 getFirstName을 static으로 만들었습니다. 컴파일될까요?",
+    "code": [
+      "class Employee",
+      "{",
+      "public:",
+      "   static string getFirstName() { return firstName; }",
+      "private:",
+      "   string firstName;",
+      "   static unsigned int count;",
+      "};"
+    ],
+    "highlight": 3,
+    "answer": "컴파일 오류입니다. static 멤버 함수에는 this 포인터가 없으므로 <b>비static 데이터 멤버</b> firstName에 접근할 수 없습니다. 어느 객체의 이름인지 알 방법이 없기 때문입니다. firstName은 객체마다 다른 값이므로 getFirstName은 <b>비static const 멤버 함수</b>여야 합니다. static 멤버 함수가 접근할 수 있는 것은 count 같은 static 멤버뿐입니다."
+  },
+  {
+    "title": "문제 5 · 실행 결과 예측하기",
+    "desc": "컴파일은 경고 없이 성공합니다. (800) 555-1212를 입력하면 무엇이 출력될까요?",
+    "code": [
+      "class PhoneNumber",
+      "{",
+      "   friend ostream &operator<<( ostream &, const PhoneNumber & );",
+      "   friend istream &operator>>( istream &, PhoneNumber );",
+      "   ...",
+      "};",
+      "",
+      "istream &operator>>( istream &input, PhoneNumber number )",
+      "{",
+      "   input.ignore();",
+      "   input >> setw( 3 ) >> number.areaCode;",
+      "   input.ignore( 2 );",
+      "   input >> setw( 3 ) >> number.exchange;",
+      "   input.ignore();",
+      "   input >> setw( 4 ) >> number.line;",
+      "   return input;",
+      "}",
+      "",
+      "int main()",
+      "{",
+      "   PhoneNumber phone;",
+      "   cin >> phone;",
+      "   cout << \"The phone number entered was: \" << phone << endl;",
+      "}"
+    ],
+    "highlight": [
+      3,
+      7
+    ],
+    "answer": "실제 출력은 <code>The phone number entered was: () -</code>로 번호가 비어 있습니다. operator&gt;&gt;의 두 번째 매개변수를 <b>값</b>으로 받았기 때문에 입력은 <b>복사본</b> number에 저장되고, 함수가 끝나면서 사라집니다. main의 phone은 전혀 바뀌지 않습니다. 교재처럼 <code>PhoneNumber &amp;number</code>로 참조를 받아야 합니다. 입력 연산자는 객체를 바꾸므로 참조, 출력 연산자는 바꾸지 않으므로 const 참조로 받는다는 짝을 기억하세요."
+  },
+  {
+    "title": "문제 6 · 컴파일 오류 찾기",
+    "desc": "한 번만 출력할 때는 잘 되던 operator<<가, 뒤에 endl을 붙이자 컴파일되지 않습니다. 왜일까요?",
+    "code": [
+      "class P",
+      "{",
+      "   friend void operator<<( ostream &, const P & );",
+      "private:",
+      "   int v = 1;",
+      "};",
+      "",
+      "void operator<<( ostream &output, const P &p )",
+      "{",
+      "   output << p.v;",
+      "}",
+      "",
+      "int main()",
+      "{",
+      "   P p;",
+      "   cout << p << endl;",
+      "}"
+    ],
+    "highlight": [
+      2,
+      7,
+      15
+    ],
+    "answer": "<code>cout &lt;&lt; p &lt;&lt; endl</code>은 <code>(cout &lt;&lt; p) &lt;&lt; endl</code>로 계산됩니다. 그런데 operator&lt;&lt;가 <b>void를 반환</b>하므로 괄호 안의 결과가 void가 되고, void에 &lt;&lt; endl을 적용할 수 없어 오류가 납니다. 반환형을 <code>ostream &amp;</code>로 바꾸고 <code>return output;</code>을 넣어야 연쇄 출력이 가능합니다. 스트림 연산자는 항상 스트림 참조를 반환합니다."
+  }
+];
+</script>
+
+<script>
+function escapeHtml(str){
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ---- render quiz ----
+const quizList = document.getElementById('quizList');
+questions.forEach((q, i) => {
+  const card = document.createElement('div');
+  card.className = 'qcard';
+  card.dataset.index = i;
+
+  let html = `<div class="qtag">Q${i+1}</div>`;
+  if (q.code) {
+    html += `<pre class="snippet">${escapeHtml(q.code)}</pre>`;
+    html += `<p class="prompt">${escapeHtml(q.prompt)}</p>`;
+  } else {
+    html += `<p class="prompt">${escapeHtml(q.prompt)}</p>`;
+  }
+  html += `<div class="options">`;
+  q.options.forEach((opt, j) => {
+    html += `
+      <label class="opt" data-opt="${j}">
+        <input type="radio" name="q${i}" value="${j}">
+        <span>${escapeHtml(opt)}</span>
+      </label>`;
+  });
+  html += `</div>`;
+  html += `<div class="feedback"><span class="verdict"></span><div class="exp"></div></div>`;
+
+  card.innerHTML = html;
+  quizList.appendChild(card);
+});
+
+document.getElementById('gradeBtn').addEventListener('click', () => {
+  let score = 0;
+  let allAnswered = true;
+
+  questions.forEach((q, i) => {
+    const card = quizList.children[i];
+    const selected = card.querySelector(`input[name="q${i}"]:checked`);
+    if (!selected) { allAnswered = false; return; }
+
+    const chosen = parseInt(selected.value, 10);
+    const isCorrect = chosen === q.correct;
+    if (isCorrect) score++;
+
+    card.classList.add('graded');
+    card.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+    card.querySelectorAll('.opt').forEach((optEl) => {
+      const j = parseInt(optEl.dataset.opt, 10);
+      if (j === q.correct) optEl.classList.add('mark-correct');
+      else if (j === chosen) optEl.classList.add('mark-wrong');
+    });
+
+    const fb = card.querySelector('.feedback');
+    fb.querySelector('.verdict').textContent = isCorrect ? '정답' : '오답';
+    fb.querySelector('.exp').textContent = q.explanation;
+  });
+
+  if (!allAnswered) {
+    alert('모든 문항에 답한 후 채점해 주세요.');
+    return;
+  }
+
+  document.getElementById('scorePill').textContent = `${score} / ${questions.length} 채점됨`;
+  document.getElementById('scorePill').classList.add('done');
+  document.getElementById('gradeBtn').disabled = true;
+  document.getElementById('gradeBtn').textContent = '채점 완료';
+
+  const summary = document.getElementById('summary');
+  summary.style.display = 'block';
+  summary.textContent = `// ${score} / ${questions.length} passed`;
+});
+
+// ---- render debug problems ----
+const debugList = document.getElementById('debugList');
+debugProblems.forEach((p) => {
+  const card = document.createElement('div');
+  card.className = 'dcard';
+
+  const highlightSet = new Set(Array.isArray(p.highlight) ? p.highlight : (p.highlight !== null ? [p.highlight] : []));
+  const codeLines = p.code.map((line, idx) => {
+    const escaped = escapeHtml(line);
+    return highlightSet.has(idx) ? `<span class="linehl">${escaped}</span>` : escaped;
+  }).join('\n');
+
+  card.innerHTML = `
+    <div class="dtag">${escapeHtml(p.title)}</div>
+    <p class="desc">${escapeHtml(p.desc)}</p>
+    <pre class="snippet">${codeLines}</pre>
+    <details class="reveal">
+      <summary>정답 및 해설 보기</summary>
+      <div class="answer">${p.answer}</div>
+    </details>
+  `;
+  debugList.appendChild(card);
+});
+</script>
+
+</body>
+</html>
