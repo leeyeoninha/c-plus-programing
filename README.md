@@ -16,7 +16,8 @@
 │   ├── index.html
 │   └── src/            모범 답안 소스
 ├── oop2week4/          ← 4주차 · 09장 클래스 심화와 예외 던지기
-└── oop2week5/          ← 5주차 · 09장 후반·10장 this, static 멤버, 연산자 오버로딩
+├── oop2week5/          ← 5주차 · 09장 후반·10장 this, static 멤버, 연산자 오버로딩
+└── oop2week6/          ← 6주차 · 10장 단항 연산자와 증가·감소 연산자 오버로딩
     ├── index.html
     └── src/            모범 답안 소스
 ```
@@ -36,6 +37,7 @@
 | 3주차 | Do it! C++ 06장 / C++ How to Program 06장 | 객체지향 4대 특징, 클래스와 인스턴스, struct→class, 접근 지정자, 생성자·소멸자, 인터페이스와 구현 분리 |
 | 4주차 | C++ How to Program 09장 | std::format, 생성·소멸 호출 순서, 합성(has-a), const 객체·const 멤버 함수, friend, 예외 던지기 |
 | 5주차 | C++ How to Program 09장 후반 · 10장 | friend 클래스, this·연쇄 호출, static 멤버, string 연산자, 연산자 오버로딩 규칙, << >> 오버로딩 |
+| 6주차 | C++ How to Program 10장 | 단항 연산자, 전위·후위 ++ / --, +=, 관계 연산자, Date 클래스 사례 연구 |
 
 ## 빌드 환경
 
