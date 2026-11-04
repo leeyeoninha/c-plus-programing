@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ 12장 · 다형성 — 확인 학습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10131a;
+    --bg-raise: #171b24;
+    --bg-card: #1c212c;
+    --line: #2a3040;
+    --ink: #e7e9ee;
+    --ink-dim: #8b93a7;
+    --amber: #f2b84b;
+    --amber-dim: #7a611f;
+    --mint: #7fd8a6;
+    --mint-dim: #234433;
+    --coral: #e8836e;
+    --coral-dim: #472a24;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, #1a2130 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height:1.6;
+    padding: 0 0 96px;
+  }
+  a{ color: var(--amber); }
+
+  /* ---------- window chrome ---------- */
+  .titlebar{
+    display:flex; align-items:center; gap:8px;
+    padding: 12px 20px;
+    background: var(--bg-raise);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index: 20;
+  }
+  .dot{ width:11px; height:11px; border-radius:50%; }
+  .dot.r{ background:#e8836e55; border:1px solid #e8836e; }
+  .dot.y{ background:#f2b84b55; border:1px solid #f2b84b; }
+  .dot.g{ background:#7fd8a655; border:1px solid #7fd8a6; }
+  .filename{
+    margin-left: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .score-pill{
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 5px 12px;
+    border-radius: 100px;
+  }
+  .score-pill.done{ color: var(--mint); border-color: var(--mint-dim); }
+
+  /* ---------- header / hero ---------- */
+  header.hero{
+    max-width: 760px; margin: 0 auto;
+    padding: 56px 24px 40px;
+  }
+  .eyebrow-line{
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    margin: 0 0 14px;
+  }
+  header.hero h1{
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.25;
+    margin: 0 0 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.hero p{
+    color: var(--ink-dim);
+    font-size: 16px;
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  main{ max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  section.block{ margin: 48px 0; }
+  .block-head{
+    display:flex; align-items:baseline; gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .block-head .idx{
+    font-family: var(--mono); color: var(--amber); font-size: 14px;
+  }
+  .block-head h2{ font-size: 20px; margin:0; font-weight: 700; }
+
+  /* ---------- quiz card ---------- */
+  .qcard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 22px 20px;
+    margin-bottom: 16px;
+    transition: border-color .2s ease;
+  }
+  .qcard .qtag{
+    font-family: var(--mono); font-size: 12px; color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  .qcard p.prompt{
+    margin: 0 0 16px;
+    font-size: 15.5px;
+    white-space: pre-wrap;
+  }
+  .prompt code, pre.snippet{
+    font-family: var(--mono);
+    font-size: 13.5px;
+  }
+  pre.snippet{
+    background: #0d0f15;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 10px 0 16px;
+    color: #cdd3e0;
+  }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt{
+    display:flex; align-items:flex-start; gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14.5px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .opt:hover{ border-color: #3a4257; background: #20263300; }
+  .opt input{ margin-top: 3px; accent-color: var(--amber); }
+  .qcard.correct{ border-color: var(--mint-dim); background: linear-gradient(180deg, #16241c 0%, var(--bg-card) 60px); }
+  .qcard.incorrect{ border-color: var(--coral-dim); background: linear-gradient(180deg, #241a18 0%, var(--bg-card) 60px); }
+  .opt.mark-correct{ border-color: var(--mint); background: #16281f; }
+  .opt.mark-wrong{ border-color: var(--coral); background: #2a1a17; }
+  .feedback{
+    display:none;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-size: 14px; color: var(--ink-dim);
+  }
+  .feedback .verdict{
+    font-family: var(--mono); font-weight:700; font-size: 13px;
+    display:inline-block; margin-bottom: 6px;
+  }
+  .qcard.correct .feedback .verdict{ color: var(--mint); }
+  .qcard.incorrect .feedback .verdict{ color: var(--coral); }
+  .qcard.graded .feedback{ display:block; }
+  .qcard.graded .opt{ pointer-events: none; }
+
+  /* ---------- submit / summary ---------- */
+  .grade-bar{
+    display:flex; justify-content:center; margin: 32px 0 8px;
+  }
+  #gradeBtn{
+    font-family: var(--mono); font-size: 14px; font-weight:700;
+    color: #10131a; background: var(--amber);
+    border:none; padding: 13px 28px; border-radius: 8px;
+    cursor:pointer;
+    box-shadow: 0 0 0 1px var(--amber-dim);
+  }
+  #gradeBtn:hover{ filter: brightness(1.07); }
+  #gradeBtn:disabled{ opacity:.5; cursor:not-allowed; }
+  .summary{
+    display:none;
+    text-align:center; font-family: var(--mono);
+    color: var(--ink-dim); font-size: 13px; margin-top: 10px;
+  }
+
+  /* ---------- debug / impl problem cards ---------- */
+  .dcard, .icard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .dcard .dtag{
+    font-family: var(--mono); font-size: 12px; color: var(--coral); margin-bottom: 10px;
+  }
+  .icard .itag{
+    font-family: var(--mono); font-size: 12px; color: var(--mint); margin-bottom: 10px;
+  }
+  .dcard p.desc, .icard p.desc{ margin: 0 0 14px; color: var(--ink-dim); font-size: 14.5px; }
+  .icard p.cond{ margin: 0 0 14px; font-size: 14px; color: var(--ink); }
+  .icard p.cond code{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+    color: var(--amber);
+  }
+  .linehl{ background:#472a2455; border-left: 2px solid var(--coral); display:block; margin: 0 -16px; padding: 0 16px 0 14px; }
+  details.reveal{
+    margin-top: 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+  }
+  details.reveal summary{
+    cursor:pointer;
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    list-style: none;
+  }
+  details.reveal summary::-webkit-details-marker{ display:none; }
+  details.reveal summary::before{ content: "▸ "; }
+  details.reveal[open] summary::before{ content: "▾ "; }
+  details.reveal .answer{
+    margin-top: 12px; font-size: 14.5px; color: var(--ink);
+  }
+  details.reveal .answer code, details.reveal .answer pre{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+  }
+  details.reveal .answer pre{
+    display:block; padding: 14px 16px; overflow-x:auto;
+    color: #cdd3e0; line-height: 1.55;
+  }
+  details.reveal .hint-note{
+    margin-top: 10px; font-size: 13.5px; color: var(--ink-dim);
+  }
+
+  footer{
+    max-width: 760px; margin: 40px auto 0; padding: 24px;
+    color: var(--ink-dim); font-size: 13px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- run example (week3) ---------- */
+  .runlabel{
+    font-family: var(--mono); font-size: 12.5px; color: var(--mint);
+    margin: 16px 0 6px;
+  }
+  pre.run{
+    background:#0d0f15;
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--mint);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 0 0 6px;
+    color:#cdd3e0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre.run .in{ color: var(--amber); font-weight: 700; }
+  .icard p.score{
+    margin: 14px 0 0; font-size: 13.5px; color: var(--ink-dim);
+    border-top: 1px dashed var(--line); padding-top: 12px;
+  }
+  .icard p.score b{ color: var(--ink); }
+
+  .navback{ margin: 18px 0 0; font-size: 13.5px; }
+  .navback a{ font-family: var(--mono); color: var(--ink-dim); text-decoration: none; }
+  .navback a:hover{ color: var(--amber); }
+  .qcard .qnum{
+    font-family: var(--mono); font-size: 12px; color: var(--amber);
+    letter-spacing: .06em; margin: 0 0 6px;
+  }
+  .qcard .prompt code, .qcard .opt code{ font-family: var(--mono); font-size: 13px; color: var(--amber); }
+  .opt span{ flex: 1; }
+  .feedback .exp{ margin-top: 8px; line-height: 1.6; }
+  .feedback .exp code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  .icard .caps{ margin: 0 0 6px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-dim); }
+  .block-note{ font-size: 13.5px; color: var(--ink-dim); margin: -6px 0 18px; }
+  .block-note code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  .dl{ margin: 0 0 12px; padding-left: 18px; }
+  .dl li{ margin: 0 0 6px; font-size: 14px; }
+  .dl li code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  table.access{ width:100%; border-collapse: collapse; margin: 0 0 14px; font-size: 13.5px; }
+  table.access th, table.access td{ border:1px solid var(--line); padding:6px 10px; text-align:left; }
+  table.access th{ background: var(--bg-raise); color: var(--ink-dim); font-weight:500; }
+  .icard div.cond{ margin: 0 0 14px; font-size: 14px; color: var(--ink); }
+  .icard div.cond code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+
+  /* ===== 개정판 추가: .ai-rule / .design / .tspec / .bugtag / .review ===== */
+  .ai-rule{
+    background: var(--bg-card); border:1px solid var(--line);
+    border-radius:10px; padding: 22px;
+  }
+  .ai-rule .oneline{
+    margin: 0 0 16px; padding: 13px 16px; font-size: 15.5px;
+    background: rgba(242,184,75,.07); border-left: 3px solid var(--amber);
+    border-radius: 0 6px 6px 0;
+  }
+  .ai-rule .oneline b{ color: var(--amber); }
+  .ai-rule table{ width:100%; border-collapse: collapse; font-size: 13.5px; margin: 0 0 12px; }
+  .ai-rule th, .ai-rule td{ border:1px solid var(--line); padding: 7px 10px; text-align:left; vertical-align:top; }
+  .ai-rule th{ background: var(--bg-raise); color: var(--ink-dim); font-weight:500; }
+  .ai-rule .caps{ margin: 16px 0 6px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-dim); }
+  .ai-rule pre{
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    background:#0d0f15; border:1px solid var(--line); border-radius:8px;
+    padding: 12px 14px; overflow-x:auto; margin: 6px 0 10px; color:#cdd3e0;
+  }
+  .ai-rule p.tail{ margin: 12px 0 0; font-size: 13.5px; color: var(--ink-dim); }
+
+  .design{
+    background: var(--bg-raise); border:1px solid var(--line);
+    border-left: 3px solid var(--amber-dim); border-radius: 8px;
+    padding: 14px 16px 4px; margin: 0 0 16px;
+  }
+  .design .dl li{ font-size: 13.8px; }
+
+  .tspec{
+    margin: 16px 0 6px; padding: 14px 16px;
+    border: 1px dashed var(--line); border-radius: 8px;
+    background: rgba(127,216,166,.03);
+  }
+  .tspec table{ width:100%; border-collapse: collapse; font-size: 13.3px; margin: 8px 0 0; }
+  .tspec th, .tspec td{ border:1px dashed var(--line); padding: 6px 9px; text-align:left; vertical-align:top; }
+  .tspec th{ color: var(--ink-dim); font-weight:500; font-size: 12.5px; }
+  .tspec td:first-child{ width: 24px; text-align:center; color: var(--amber); font-family: var(--mono); }
+  .tspec em{ color: var(--ink-dim); font-style: normal; }
+  .tspec .dl li{ font-size: 13.5px; margin: 0; }
+
+  .bugtag{
+    display:inline-block; margin-left: 8px; vertical-align: 1px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .02em;
+    color: var(--coral); background: rgba(232,131,110,.10);
+    border: 1px solid var(--coral-dim); border-radius: 100px; padding: 2px 9px;
+  }
+
+  .review{
+    background: var(--bg-card); border:1px solid var(--line);
+    border-radius: 10px; padding: 20px 22px; margin-top: 18px;
+  }
+  .review .caps{ margin: 0; font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  .review ul{ list-style:none; margin: 12px 0 0; padding: 0; }
+  .review li{ position: relative; padding-left: 24px; margin: 0 0 9px; font-size: 14px; }
+  .review li::before{ content:"A1"; position: absolute; left: 0; top: 0; color: var(--amber); font-family: var(--mono); }
+  .review p.guide{ margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed var(--line);
+    font-size: 13.5px; color: var(--ink-dim); }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+  <span class="filename">chapter12_polymorphism_practice.cpp</span>
+  <span class="score-pill">4지선다 16</span>
+</div>
+
+<header class="hero">
+  <p class="eyebrow-line">// C++ How to Program &nbsp;·&nbsp; 11.4~11.6 · 12장 &nbsp;·&nbsp; 10주차</p>
+  <h1>다형성 — 기반 클래스 포인터로 다루기</h1>
+  <p>생성·소멸 호출 순서, 상속 지정자, 그리고 기반 포인터로 파생 객체를 다루는 규칙(가상 함수·가상 소멸자·다운캐스팅)을
+  01 이론 → 02 진단 → 03 실습 순서로 확인합니다.</p>
+  <p><b>02 진단은 오류를 찾는 문제가 아닙니다.</b> 제공된 코드를 그대로 실행해 기준선을 만들고, 한 줄씩 바꿔 오류를
+  <b>직접 만들어</b> 증상을 기록합니다. <b>03 실습</b>은 목적 라이브러리 상속 → 설계 → 종합 순서입니다.</p>
+  <p class="navback"><a href="../">← 전체 주차 목록으로</a></p>
+</header>
+
+<main>
+  <section class="block" id="ai-block">
+    <div class="block-head">
+      <span class="idx">AI</span>
+      <h2>AI 사용 규칙 — 과제를 시작하기 전에</h2>
+    </div>
+    <div class="ai-rule">
+      <p class="oneline"><b>AI를 썼는지로 채점하지 않습니다. 스스로 확인하세요 — 내가 설명할 수 있는 코드인가?</b><br>
+      이 문장 하나만 기억하면 아래 규칙은 전부 같은 말입니다.</p>
+
+      <table>
+        <thead><tr><th>구역</th><th>AI 사용</th><th>조건</th></tr></thead>
+        <tbody>
+          <tr><td>개념 학습·예습·복습<br>(01 이해도 점검 퀴즈 포함)</td><td><b>자유</b></td><td>답을 그대로 옮기지 말고, 물어본 것은 <b>내 말로 3줄 요약</b>해 노트에 남깁니다.</td></tr>
+          <tr><td>설계 카드<br>(수업 중 5분, 종이)</td><td><b>금지</b></td><td>손으로, 혼자. 설계를 대신 해 주게 하면 이 과제의 목적이 사라집니다.</td></tr>
+          <tr><td>과제 코드<br>(03 실습)</td><td><b>조건부</b></td><td>사용 공개 + 구두 설명 + 자기 테스트. 세 조건을 지키면 자유롭게 쓸 수 있습니다.</td></tr>
+          <tr><td>시험·퀴즈·구두 확인</td><td><b>전면 금지</b></td><td>대면·종이. 전자기기 사용 불가.</td></tr>
+        </tbody>
+      </table>
+
+      <p class="caps">제출물 — 소스 코드 하나 (md 파일 없음)</p>
+      <ul class="dl">
+        <li><b>파일</b> — 요구된 파일 이름 그대로. 제출은 <b>소스 코드만</b>입니다.</li>
+        <li><b>맨 위 주석 3종</b> — 설계 카드 4칸 · 내 테스트 3개 · AI 사용 3줄을 모두 <b>소스 맨 위 주석</b>으로 적습니다.</li>
+        <li><b>리뷰 코멘트 2개</b> — 짝 코드에서 찾은 것을 같은 주석 블록 끝에 적습니다.</li>
+      </ul>
+      <p class="tail">design.md · tests.md 같은 <b>별도 파일은 만들지 않습니다.</b> 주석은 채점 대상이 아니라 <b>여러분이 설계를 먼저 적어 두기 위한 것</b>입니다. 맞히는 것이 목적이 아니니 틀려도 괜찮습니다.</p>
+
+      <p class="caps">소스 맨 위에 이렇게 적습니다 (예)</p>
+      <pre>// ===== 설계 카드 =====
+// 상태      :
+// 불변식    :
+// 인터페이스:
+// 실패 조건 :
+// ===== 내 테스트 3개 =====
+// 1) 입력 / 기대 / 왜 이 케이스인가
+// 2)
+// 3)
+// ===== AI 사용 =====
+// AI 사용: 없음
+// ===== 리뷰 코멘트 2개 =====
+// 1)
+// 2)
+
+#include &lt;iostream&gt;</pre>
+
+      <p class="caps">공개 양식 — AI를 쓰지 않았다면 (소스 맨 위)</p>
+      <pre>// AI 사용: 없음</pre>
+      <p class="caps">썼다면 (소스 맨 위, #include 앞)</p>
+      <pre>// AI 사용: 있음
+// 도구: ChatGPT
+// 사용 범위: 컴파일 오류 메시지 해석 / 테스트 아이디어 검토
+// AI가 준 코드 중 내가 사용한 부분: 없음</pre>
+
+      <p class="caps">주차 공지에 매주 붙는 3줄</p>
+      <pre>[AI 사용] 개념 학습은 자유 / 과제는 조건부(사용 공개 + 설명 가능) / 시험·퀴즈·설계 카드는 금지.
+소스 맨 위에 // AI 사용: 없음  또는  // 있음 + 도구 + 사용 범위 3줄을 주석으로 적으세요.
+설명하지 못하는 코드는 내 것이 아닙니다. (AI 사용 여부와 무관)</pre>
+      <p class="tail">숨기지 마세요. 밝히는 것 자체가 문제가 되지 않습니다.</p>
+    </div>
+  </section>
+
+  <section class="block" id="sa-block">
+    <div class="block-head">
+      <span class="idx">01</span>
+      <h2>이론 확인 문제 — 4지선다 16문항</h2>
+    </div>
+    <p class="lead">보기를 누르면 바로 정답 여부가 표시됩니다. 점수는 매기지 않습니다 — 틀린 문항의 해설을 읽고 넘어가세요.</p>
+    <div class="qlist">
+<div class="qcard" data-ans="②">
+  <p class="qn">Q1</p>
+  <p class="qtext">Employee → CommissionEmployee → BasePlusCommissionEmployee 계층에서 BasePlusCommissionEmployee 객체를 만들 때, 생성자의 호출과 실행에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>가장 먼저 호출되는 것은 Employee 생성자이고, 본문도 Employee 생성자가 가장 먼저 실행을 마친다</button><button class="opt" data-k="②"><span class="k">②</span>가장 먼저 호출되는 것은 BasePlusCommissionEmployee 생성자이고, 본문이 가장 먼저 실행을 마치는 것은 Employee 생성자다</button><button class="opt" data-k="③"><span class="k">③</span>가장 먼저 호출되는 것도 BasePlusCommissionEmployee 생성자이고, 본문도 BasePlusCommissionEmployee 생성자가 가장 먼저 실행을 마친다</button><button class="opt" data-k="④"><span class="k">④</span>세 생성자의 본문은 호출 순서와 같은 순서로 실행된다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p><b>호출</b>은 최파생 생성자에서 시작해 기반으로 내려가고(생성자 호출의 연쇄), <b>실행</b>은 그 반대로 기반 본문 → 파생 본문 순서다. 그래서 파생 생성자 본문이 도는 시점에는 기반 부분이 이미 완성되어 있다. "기반이 먼저 호출된다"가 아니라 "기반 본문이 먼저 실행된다"가 정확한 서술이다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qn">Q2</p>
+  <p class="qtext">같은 계층에서 BasePlusCommissionEmployee 객체가 소멸할 때 소멸자 호출 순서로 옳은 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>Employee → CommissionEmployee → BasePlusCommissionEmployee</button><button class="opt" data-k="②"><span class="k">②</span>CommissionEmployee → BasePlusCommissionEmployee → Employee</button><button class="opt" data-k="③"><span class="k">③</span>BasePlusCommissionEmployee → Employee → CommissionEmployee</button><button class="opt" data-k="④"><span class="k">④</span>BasePlusCommissionEmployee → CommissionEmployee → Employee</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+    <p>소멸은 생성의 역순(폭포)이다. 소멸자는 파생 것이 먼저 불리고 파생 본문이 먼저 실행되므로 <b>호출 방향과 실행 방향이 같다</b>(생성과 반대).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qn">Q3</p>
+  <p class="qtext">CommissionEmployee가 Date hireDate를 값 멤버로 가질 때, BasePlusCommissionEmployee 객체가 소멸하는 과정에서 Date의 소멸자는 언제 실행되는가?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>BasePlusCommissionEmployee 소멸자 본문보다 먼저</button><button class="opt" data-k="②"><span class="k">②</span>BasePlusCommissionEmployee 소멸자 본문 직후 ~ CommissionEmployee 소멸자 본문 직전</button><button class="opt" data-k="③"><span class="k">③</span>CommissionEmployee 소멸자 본문 직후 ~ Employee 소멸자 본문 직전</button><button class="opt" data-k="④"><span class="k">④</span>Employee 소멸자 다음</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p>실행 순서는 BasePlusCommissionEmployee → CommissionEmployee → <b>Date</b> → Employee. 소멸자 본문이 먼저, 다음이 그 클래스의 멤버, 마지막이 기반이다. (생성은 Employee 본문 → 멤버 Date → CommissionEmployee 본문 순서라 Date가 기반보다 늦게 만들어진다.)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qn">Q4</p>
+  <p class="qtext">public 상속에서 기반 클래스의 private 멤버에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 클래스의 멤버 함수에서 직접 접근할 수 없다 — 기반의 public·protected 멤버 함수를 통해서만 쓸 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>파생 클래스에서 protected로 바뀐다</button><button class="opt" data-k="③"><span class="k">③</span>상속되지 않으므로 파생 객체의 크기에 포함되지 않는다</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스에서 public으로 바뀐다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p>private 멤버도 상속되어 객체 크기에는 들어가고, 접근만 막힌다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qn">Q5</p>
+  <p class="qtext">class W : protected Base 에서 Base의 public 멤버 pub()은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>W의 public 멤버가 되어 외부에서 w.pub()를 호출할 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>W의 private 멤버가 된다</button><button class="opt" data-k="③"><span class="k">③</span>W의 protected 멤버가 되어 W의 멤버 함수와 그 파생 클래스에서는 접근할 수 있지만 외부에서는 호출할 수 없다</button><button class="opt" data-k="④"><span class="k">④</span>상속되지 않는다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p>protected 상속은 is-a가 아니어서 기반 포인터로도 가리킬 수 없다(진단 3에서 확인).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qn">Q6</p>
+  <p class="qtext">class Z : private Base 에서 Base의 public 멤버 pub()은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>Z의 public 멤버</button><button class="opt" data-k="②"><span class="k">②</span>Z의 private 멤버</button><button class="opt" data-k="③"><span class="k">③</span>Z의 protected 멤버</button><button class="opt" data-k="④"><span class="k">④</span>상속되지 않는다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p></p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qn">Q7</p>
+  <p class="qtext">상속을 통한 소프트웨어 재사용에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 클래스를 만들려면 기반 클래스의 소스 코드가 반드시 있어야 한다</button><button class="opt" data-k="②"><span class="k">②</span>기반 클래스의 목적 코드가 없어도 헤더만 있으면 링크할 수 있다</button><button class="opt" data-k="③"><span class="k">③</span>독점 클래스는 라이선스가 있어도 상속 대상으로 쓸 수 없다</button><button class="opt" data-k="④"><span class="k">④</span>기반 클래스의 헤더와 목적 코드가 있으면 소스 없이 파생 클래스를 만들어 링크할 수 있다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+    <p></p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qn">Q8</p>
+  <p class="qtext">다형성(동적 바인딩)이 일어나는 경우는?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>기반 클래스 포인터나 참조로 가상 함수를 호출할 때</button><button class="opt" data-k="②"><span class="k">②</span>기반 클래스 포인터로 비가상 함수를 호출할 때</button><button class="opt" data-k="③"><span class="k">③</span>파생 클래스 객체의 이름으로 가상 함수를 호출할 때</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스 포인터로 기반 클래스 객체를 가리킬 때</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p></p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qn">Q9</p>
+  <p class="qtext">기반 포인터가 파생 객체를 가리킬 때, 다운캐스팅 없이 호출할 수 있는 멤버는?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 클래스가 새로 추가한 멤버</button><button class="opt" data-k="②"><span class="k">②</span>기반·파생의 모든 public 멤버</button><button class="opt" data-k="③"><span class="k">③</span>기반 클래스가 선언한 멤버</button><button class="opt" data-k="④"><span class="k">④</span>아무 멤버도 호출할 수 없다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p>나머지는 컴파일 오류다(02 진단 1).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qn">Q10</p>
+  <p class="qtext">Animal(기반)과 Dog(파생)가 있을 때 컴파일 오류가 나는 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>Animal* p = new Animal;</button><button class="opt" data-k="②"><span class="k">②</span>Dog* q = new Dog;</button><button class="opt" data-k="③"><span class="k">③</span>Animal* r = new Dog;</button><button class="opt" data-k="④"><span class="k">④</span>Dog* s = new Animal;</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+    <p></p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qn">Q11</p>
+  <p class="qtext">가상 함수 호출이 동적 바인딩(실행 시점 결정)되는 조건을 가장 정확히 설명한 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>함수가 virtual이고, 기반 클래스 포인터나 참조로 호출할 때</button><button class="opt" data-k="②"><span class="k">②</span>함수가 virtual이면 호출 형태와 무관하게 항상</button><button class="opt" data-k="③"><span class="k">③</span>객체 이름으로 부르면 실행 시점, 포인터로 부르면 컴파일 시점</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스에서 virtual을 다시 선언할 때</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p></p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qn">Q12</p>
+  <p class="qtext">BasePlusCommissionEmployee bob; bob.earnings(); 로 가상 함수 earnings()를 호출했다. 옳은 설명은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>컴파일 시점에 기반 버전으로 결정되어 기반 결과가 나온다</button><button class="opt" data-k="②"><span class="k">②</span>컴파일 시점에 결정되지만 호출되는 것은 bob의 클래스(파생) 버전이다</button><button class="opt" data-k="③"><span class="k">③</span>실행 시점에 객체 타입을 보고 결정된다(동적 바인딩)</button><button class="opt" data-k="④"><span class="k">④</span>파생에 virtual이 없으므로 컴파일 오류다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p>정적 바인딩이지만 대상은 bob의 클래스다. "정적 바인딩 = 기반 함수"가 아니다(진단 4의 확인 단계에서 직접 본다).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qn">Q13</p>
+  <p class="qtext">기반에서만 virtual로 선언하고, 파생에서는 virtual 없이 같은 시그니처로 재정의했다. 파생의 함수는?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>비가상이 되어 기반 포인터로 부르면 기반 버전이 실행된다</button><button class="opt" data-k="②"><span class="k">②</span>가상이지만 기반 포인터로 부르면 기반 버전이 실행된다</button><button class="opt" data-k="③"><span class="k">③</span>가상이며 기반 포인터로 불러도 파생 버전이 실행된다</button><button class="opt" data-k="④"><span class="k">④</span>virtual을 다시 쓰지 않았으므로 컴파일 오류다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p>실행 결과 확인(파생에 virtual 없이 D::f가 호출됨).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qn">Q14</p>
+  <p class="qtext">dynamic_cast에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>기반 클래스에 가상 함수가 없어도 사용할 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>변환에 실패하면 예외를 던진다</button><button class="opt" data-k="③"><span class="k">③</span>static_cast와 동작이 같고 문법만 다르다</button><button class="opt" data-k="④"><span class="k">④</span>기반 클래스에 가상 함수가 있는 다형 타입에서만 동작하며, 실패하면 nullptr을 돌려준다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+    <p>기반에 가상 함수가 없으면 컴파일 오류다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qn">Q15</p>
+  <p class="qtext">기반 포인터 p가 파생 객체를 가리킬 때 delete p; 를 했는데 기반 소멸자가 virtual이 아니었다. 옳은 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 소멸자와 기반 소멸자가 모두 호출된다</button><button class="opt" data-k="②"><span class="k">②</span>기반 소멸자만 호출되고, 표준은 이 동작을 정의하지 않는다</button><button class="opt" data-k="③"><span class="k">③</span>컴파일 오류가 난다</button><button class="opt" data-k="④"><span class="k">④</span>파생 소멸자만 호출된다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p>실행 결과: [소멸] Animal만 찍히고 파생 소멸자는 불리지 않는다(02 진단 4).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qn">Q16</p>
+  <p class="qtext">type field와 switch로 타입을 분기하는 방식의 문제로 옳은 것은?</p>
+  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>타입 검사를 빠뜨리거나, 새 타입을 추가할 때 case를 빠뜨릴 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>가상 함수보다 항상 느리다</button><button class="opt" data-k="③"><span class="k">③</span>컴파일러가 가상 함수를 자동으로 만들어 준다</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스가 기반 클래스를 상속할 수 없게 된다</button></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p>실행 결과(02 진단 5): Fish를 추가하고 case를 빠뜨리면 컴파일·경고 없이 "Unknown animal sound!"가 나온다.</p>
+  </details>
+</div>
+    </div>
+  </section>
+
+  <section class="block" id="debug-block">
+    <div class="block-head">
+      <span class="idx">02</span>
+      <h2>진단 — 제공 코드에 오류를 직접 만들어 보기 (8문항)</h2>
+    </div>
+    <p class="lead">제공 코드 2벌을 그대로 실행해 <b>기준선 출력</b>을 먼저 적습니다. 그다음 문항의 지시대로 <b>한 줄씩 바꿔</b> 증상을 확인하고, 되돌려서 원상 복구까지 확인합니다.</p>
+    <table class="rec">
+      <thead><tr><th>문항</th><th>바꾼 줄</th><th>증상 (오류 문구 / 출력 차이)</th><th>원인</th><th>수정</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td></td><td></td><td></td><td></td></tr><tr><td>2</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>3</td><td></td><td></td><td></td><td></td></tr><tr><td>4</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>5</td><td></td><td></td><td></td><td></td></tr><tr><td>6</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>7</td><td></td><td></td><td></td><td></td></tr><tr><td>8</td><td></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <p class="guide">기록 조건 — 4·5·6·7번은 화면에 오류가 뜨지 않으므로 <b>기준선 출력과 비교</b>해 무엇이 달라졌는지 적습니다. 각 문항은 <b>되돌려서 원상 복구</b>까지 확인합니다.</p>
+    <div class="dlist">
+<div class="codecard">
+  <p class="cap">제공 코드 A — 진단 1~5 공통</p>
+  <p class="desc">이 코드를 그대로 컴파일·실행하면 정상 동작합니다. 먼저 아래 기준선을 적어 두세요.</p>
+  <pre>#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+class Animal {
+public:
+    Animal(const std::string&amp; name) : name_(name) {}
+    virtual ~Animal() { std::cout &lt;&lt; "[소멸] Animal(" &lt;&lt; name_ &lt;&lt; ")" &lt;&lt; std::endl; }
+    virtual void makeSound() const { std::cout &lt;&lt; "Some sound" &lt;&lt; std::endl; }
+    const std::string&amp; getName() const { return name_; }
+private:
+    std::string name_;
+};
+
+class Dog : public Animal {
+public:
+    Dog(const std::string&amp; name) : Animal(name), ball_(new int[10]) {}
+    ~Dog() {
+        std::cout &lt;&lt; "[소멸] Dog(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl;
+        delete[] ball_;
+    }
+    void makeSound() const { std::cout &lt;&lt; "Woof!" &lt;&lt; std::endl; }
+    void fetch() const { std::cout &lt;&lt; "공을 물어 옵니다." &lt;&lt; std::endl; }
+private:
+    int* ball_;
+};
+
+class Cat : public Animal {
+public:
+    Cat(const std::string&amp; name) : Animal(name) {}
+    ~Cat() { std::cout &lt;&lt; "[소멸] Cat(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl; }
+    void makeSound() const { std::cout &lt;&lt; "Meow!" &lt;&lt; std::endl; }
+};
+
+void makeAnimalSound(const Animal&amp; animal) { animal.makeSound(); }
+
+int main() {
+    Dog dog("바둑이");
+    Cat cat("나비");
+
+    Animal* p = &amp;dog;
+    p-&gt;makeSound();
+
+    makeAnimalSound(cat);
+
+    Animal* q = new Dog("순돌이");
+    delete q;
+
+    return 0;
+}</pre>
+  <p class="desc">기준선 출력: <code>Woof!</code> / <code>Meow!</code> / <code>[소멸] Dog(순돌이)</code> / <code>[소멸] Animal(순돌이)</code> / <code>[소멸] Cat(나비)</code> / <code>[소멸] Animal(나비)</code> / <code>[소멸] Dog(바둑이)</code> / <code>[소멸] Animal(바둑이)</code></p>
+</div>
+<div class="dcard">
+  <p class="dn">진단 1</p>
+  <h3 class="dtitle">기반 포인터의 접근 범위</h3>
+  <p>바꾸기: <code>p-&gt;makeSound();</code> 아래에 <code>p-&gt;fetch();</code> 한 줄 추가 → 컴파일</p>
+  
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상: 컴파일 오류 — Animal에 fetch가 없다.<br>원인: 멤버는 핸들 타입으로 찾는다. 다형성은 가상 함수 호출에만 작용하고, 파생 전용 멤버는 기반에 선언이 없다.<br>수정: <code>Dog* d = dynamic_cast&lt;Dog*&gt;(p); if (d != nullptr) d-&gt;fetch();</code> — 또는 기반에 virtual fetch()를 올린다.</p>
+  </details>
+</div>
+<div class="dcard">
+  <p class="dn">진단 2</p>
+  <h3 class="dtitle">기반 객체를 파생 포인터로</h3>
+  <p>바꾸기: main에 아래 두 줄 추가</p>
+  <pre>Animal animal("기본");
+Dog* r = &amp;animal;</pre>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상: 컴파일 오류 — Animal*을 Dog*로 변환할 수 없다.<br>원인: 기반 객체는 파생이 아니다(파생 부분이 없다). 반대 방향(기반 포인터 ← 파생 객체)만 안전하다.<br>수정: <code>Dog dog2("새끼"); Dog* r = &amp;dog2;</code> — 기반 객체를 파생으로 쓰려는 시도 자체가 설계 오류다.</p>
+  </details>
+</div>
+<div class="dcard">
+  <p class="dn">진단 3</p>
+  <h3 class="dtitle">protected·private 상속은 is-a가 아니다</h3>
+  <p>바꾸기: ① <code>class Dog : public Animal</code> → <code>class Dog : private Animal</code> ② main에 <code>makeAnimalSound(dog);</code> 한 줄 추가 ③ 확인한 뒤 <code>protected Animal</code>로도 바꿔 같은 실험을 반복(상속 지정자 두 종류를 한 번에 본다)</p>
+  
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상: <b>한 원인으로 오류 세 개</b> — <code>Animal* p = &amp;dog;</code>, <code>makeAnimalSound(dog);</code>, 그리고 파생 내부가 아닌 곳에서의 기반 변환. 문구는 셋 다 "Animal이 접근할 수 없는 기반이다".<br>원인: private 상속은 is-a가 아니다. "Dog은 Animal이다"가 성립하지 않으므로 Animal*·Animal&amp; 자리에 넣을 수 없다. 기반으로의 변환은 파생 클래스 내부에서만 허용된다.<br>수정: <code>public Animal</code>로 되돌린다 — 다형적으로 쓰려면 public 상속이어야 한다. protected도 결과가 같다(셋 다 "inaccessible base").</p>
+  </details>
+</div>
+<div class="dcard">
+  <p class="dn">진단 4</p>
+  <h3 class="dtitle">virtual을 지우면 다형성이 꺼진다</h3>
+  <p>바꾸기: Animal의 <code>virtual void makeSound() const</code>에서 <code>virtual</code>만 삭제 (다른 줄은 그대로)</p>
+  
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상: 출력이 <code>Some sound</code> / <code>Some sound</code> — 포인터 호출도, 참조 호출도 둘 다 기반 버전이다. 경고 0.<br>원인: 두 함수는 시그니처가 같지만 기반에 virtual이 없어 vtable 슬롯이 만들어지지 않았다. 파생의 함수는 재정의가 아니라 이름을 가린 별개의 함수다.<br>수정: <code>virtual</code>을 되돌린다 — 기반 한 곳에만 붙이면 파생도 자동으로 가상이다.<br>확인: 같은 코드에서 <code>dog.makeSound();</code>(객체 이름)를 추가하면 <code>Woof!</code>가 나온다. <b>정적 바인딩이 기반 함수를 부르는 게 아니라는 증거</b>다.</p>
+  </details>
+</div>
+<div class="dcard">
+  <p class="dn">진단 5</p>
+  <h3 class="dtitle">가상 소멸자</h3>
+  <p>바꾸기: <code>virtual ~Animal()</code>에서 <code>virtual</code>만 삭제</p>
+  <pre>class Animal {
+public:
+    enum AnimalType { CAT, DOG, BIRD };
+    Animal(AnimalType type) : type_(type) {}
+    AnimalType getType() const { return type_; }
+private:
+    AnimalType type_;
+};
+class Cat  : public Animal { public: Cat()  : Animal(CAT)  {} void makeSound() const { std::cout &lt;&lt; "Meow!"  &lt;&lt; std::endl; } };
+class Dog  : public Animal { public: Dog()  : Animal(DOG)  {} void makeSound() const { std::cout &lt;&lt; "Woof!"  &lt;&lt; std::endl; } };
+class Bird : public Animal { public: Bird() : Animal(BIRD) {} void makeSound() const { std::cout &lt;&lt; "Tweet!" &lt;&lt; std::endl; } };
+
+void makeAnimalSound(const Animal&amp; animal) {
+    switch (animal.getType()) {
+    case Animal::CAT:  static_cast&lt;const Cat&amp;&gt;(animal).makeSound();  break;
+    case Animal::DOG:  static_cast&lt;const Dog&amp;&gt;(animal).makeSound();  break;
+    case Animal::BIRD: static_cast&lt;const Bird&amp;&gt;(animal).makeSound(); break;
+    default: std::cout &lt;&lt; "Unknown animal sound!" &lt;&lt; std::endl;
+    }
+}
+int main() {
+    Cat cat; Dog dog; Bird bird;
+    makeAnimalSound(cat); makeAnimalSound(dog); makeAnimalSound(bird);
+}</pre>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상: <code>delete q;</code>에서 <code>[소멸] Animal(순돌이)</code>만 찍히고 <b><code>[소멸] Dog(순돌이)</code>가 사라진다.</b> Dog가 잡은 <code>new int[10]</code>은 남는다.<br>원인: delete는 포인터의 정적 타입(Animal)으로 처리된다. 소멸자가 virtual이 아니면 실제 타입을 볼 통로(vtable)를 쓰지 않는다.<br>수정: <code>virtual ~Animal() = default;</code><br>확인: 되돌린 뒤 같은 줄이 두 줄(<code>Dog</code> → <code>Animal</code>)로 돌아오는지 본다.</p>
+<p><b>심화 — "표준이 정의하지 않는다"를 수치로 확인</b> (같은 실험 파일에 추가)<br>⑴ <code>sizeof(Animal)</code>과 <code>sizeof(Dog)</code>를 출력한다 — 40 / 48<br>⑵ Dog 생성자에서 <code>new int[10]</code>을 잡고, 아직 정리되지 않은 버퍼 수를 세는 정적 카운터를 둔다(생성 +1, 소멸 −1)<br>⑶ <code>Animal* p = new Dog("바둑이"); delete p;</code> 실행 → 소멸 로그·카운터·delete 전후를 출력(실행 결과: <code>[소멸] Animal</code> 한 줄, 카운터 <b>1</b>)<br>⑷ <code>virtual ~Animal()</code>을 붙여 다시 실행 → <code>[소멸] Dog</code> → <code>[소멸] Animal</code>, 카운터 <b>0</b><br>⑸ (여유가 있으면) 두 클래스에 <code>static void operator delete(void*, std::size_t)</code>를 정의해 delete가 넘기는 크기를 출력 — 기반 포인터 delete는 <b>40</b>(실제 할당은 48), 파생 포인터 delete는 <b>48</b><br>정리: 소멸자를 고르지 못한 것(파생 자원 미정리)과 해제 크기가 어긋난 것(40 vs 48)이 <b>같은 원인</b>이다 — 동적 타입을 알 통로(vtable)를 쓰지 않았기 때문. 올바른 동작을 정의할 방법이 없어 표준이 UB로 남긴다.</p>
+  </details>
+</div>
+<div class="codecard">
+  <p class="cap">제공 코드 B — 진단 6 전용</p>
+  <p class="desc">이 코드를 그대로 컴파일·실행하면 정상 동작합니다.</p>
+  <pre>class Animal {
+public:
+    enum AnimalType { CAT, DOG, BIRD };
+    Animal(AnimalType type) : type_(type) {}
+    AnimalType getType() const { return type_; }
+private:
+    AnimalType type_;
+};
+class Cat  : public Animal { public: Cat()  : Animal(CAT)  {} void makeSound() const { std::cout &lt;&lt; "Meow!"  &lt;&lt; std::endl; } };
+class Dog  : public Animal { public: Dog()  : Animal(DOG)  {} void makeSound() const { std::cout &lt;&lt; "Woof!"  &lt;&lt; std::endl; } };
+class Bird : public Animal { public: Bird() : Animal(BIRD) {} void makeSound() const { std::cout &lt;&lt; "Tweet!" &lt;&lt; std::endl; } };
+
+void makeAnimalSound(const Animal&amp; animal) {
+    switch (animal.getType()) {
+    case Animal::CAT:  static_cast&lt;const Cat&amp;&gt;(animal).makeSound();  break;
+    case Animal::DOG:  static_cast&lt;const Dog&amp;&gt;(animal).makeSound();  break;
+    case Animal::BIRD: static_cast&lt;const Bird&amp;&gt;(animal).makeSound(); break;
+    default: std::cout &lt;&lt; "Unknown animal sound!" &lt;&lt; std::endl;
+    }
+}
+int main() {
+    Cat cat; Dog dog; Bird bird;
+    makeAnimalSound(cat); makeAnimalSound(dog); makeAnimalSound(bird);
+}</pre>
+  
+</div>
+<div class="dcard">
+  <p class="dn">진단 6</p>
+  <h3 class="dtitle">타입을 늘리면 switch가 따라오지 못한다 (이론 16번)</h3>
+  <p>바꾸기: ① enum에 <code>TURTLE</code> 추가 ② <code>class Turtle : public Animal</code>(생성자 <code>Animal(TURTLE)</code>, <code>makeSound</code>가 <code>거북거북!</code>) ③ main에 <code>Turtle turtle; makeAnimalSound(turtle);</code> — <b>switch는 손대지 않고</b> 실행<br>고치기: ① switch에 <code>case Animal::TURTLE</code>을 추가해 네 줄이 맞게 만든다 ② 그런데 여기에 거북이를 하나 더 늘리면 또 무엇을 고쳐야 하는가 ③ 컴파일러가 그 누락을 잡아 주는가 ④ 근본 수정은 무엇인가 — switch가 사라지려면 무엇을 바꿔야 하는지 한 줄</p>
+<p>패키지에는 이 제공 코드 2벌을 <code>src/diagnosis/</code>로 넣고, 페이지에는 전문과 함께 "정상 기준선 출력"을 먼저 보여 줍니다(학생이 비교 기준을 먼저 확보하게).</p>
+  
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상: <code>Meow!</code> / <code>Woof!</code> / <code>Tweet!</code> / <b><code>Unknown animal sound!</code></b> — 컴파일 경고 0.<br>원인: 타입 필드와 분기 코드가 서로를 모른다. 새 타입을 추가하면 switch도 고쳐야 한다는 사실을 컴파일러가 강제하지 못한다.</p>
+  </details>
+</div>
+<div class="dcard">
+  <p class="dn">진단 7</p>
+  <h3 class="dtitle">static_cast와 dynamic_cast, 무엇이 다른가</h3>
+  <p>바꾸기: main에서 <code>p-&gt;makeSound();</code> 아래에 네 줄 추가</p>
+  <pre>Dog* d1 = dynamic_cast&lt;Dog*&gt;(p);   // 실제 객체는 Dog
+Cat* c1 = dynamic_cast&lt;Cat*&gt;(p);
+Dog* d2 = static_cast&lt;Dog*&gt;(p);
+Cat* c2 = static_cast&lt;Cat*&gt;(p);
+std::cout &lt;&lt; "dynamic_cast&lt;Dog*&gt; "  &lt;&lt; (d1 != nullptr ? "성공" : "nullptr") &lt;&lt; std::endl;
+std::cout &lt;&lt; "static_cast&lt;Dog*&gt;  "  &lt;&lt; (d2 != nullptr ? "성공" : "nullptr") &lt;&lt; std::endl;
+std::cout &lt;&lt; "dynamic_cast&lt;Cat*&gt; "  &lt;&lt; (c1 != nullptr ? "성공" : "nullptr") &lt;&lt; std::endl;
+std::cout &lt;&lt; "static_cast&lt;Cat*&gt;  "  &lt;&lt; (c2 != nullptr ? "성공" : "nullptr") &lt;&lt; std::endl;</pre><pre>--- 캐스팅 실험 ---
+dynamic_cast&lt;Dog*&gt; 성공
+static_cast&lt;Dog*&gt;  성공
+dynamic_cast&lt;Cat*&gt; nullptr
+static_cast&lt;Cat*&gt;  성공</pre>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상(실행 결과)<br>→ 표로 정리<br>| 실제 객체 | 캐스트 | 결과 |<br>| Dog | <code>dynamic_cast&lt;Dog*&gt;</code> | 성공 |<br>| Dog | <code>static_cast&lt;Dog*&gt;</code> | 성공 |<br>| Dog | <code>dynamic_cast&lt;Cat*&gt;</code> | <b>nullptr</b> |<br>| Dog | <code>static_cast&lt;Cat*&gt;</code> | <b>포인터를 돌려줌</b> |</p>
+<p>원인: <code>dynamic_cast</code>는 <b>실행 중에 실제 타입을 확인</b>하고, 실패하면 <code>nullptr</code>로 알려 준다. <code>static_cast</code>는 확인하지 않고 컴파일러에게 "믿어라"고 말하는 것이라 <b>실패를 알릴 방법이 없다.</b><br>포인트(학생이 놓치는 지점): 일치하는 조합에서는 <b>둘의 결과가 똑같다.</b> 차이는 일치하지 않을 때만 드러나므로, 실험에 반드시 불일치 조합을 넣어야 한다.<br>수정: 확인이 필요하면 <code>dynamic_cast</code> + <code>nullptr</code> 검사. 타입이 확실할 때만 <code>static_cast</code>.<br>추가 관찰: <code>c2-&gt;makeSound()</code>를 실행하면 컴파일·실행은 되지만 Cat 객체가 아닌 것을 Cat으로 취급한 것이라 <b>정의되지 않은 동작</b>입니다. 실행하지 말고, 왜 위험한지 두 줄로 적습니다(멤버를 읽으면 엉뚱한 메모리를 읽고, 가상 호출이면 vtable을 잘못 짚는다).</p>
+  </details>
+</div>
+<div class="dcard">
+  <p class="dn">진단 8</p>
+  <h3 class="dtitle">dynamic_cast는 다형 타입에서만 동작한다</h3>
+  <p>바꾸기: 제공 코드 A에서 Animal의 <code>virtual</code>을 <b>전부</b> 지우고(<code>~Animal</code>, <code>makeSound</code> 둘 다), main에 <code>Cat* c = dynamic_cast&lt;Cat*&gt;(p);</code> 한 줄 추가</p>
+  
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p>증상: 컴파일 오류 — 대표적인 문구가 "source type is not polymorphic"입니다(컴파일러마다 표현은 다르지만 뜻은 같습니다).<br>원인: <code>dynamic_cast</code>는 실행 중 타입 정보(vtable)를 읽어 판정한다. 가상 함수가 하나도 없으면 그 정보 자체가 없어 판정할 방법이 없다 → 언어가 컴파일 단계에서 막는다.<br>이어서 확인할 것 — <b>같은 줄을 <code>static_cast&lt;Cat*&gt;(p);</code>로 바꾸면 컴파일된다.</b> 실행 결과: <code>static_cast&lt;Cat*&gt; 성공</code>이 찍힙니다. 즉<br>- <code>dynamic_cast</code> — 타입 정보가 필요하고, 없으면 <b>컴파일 오류</b><br>- <code>static_cast</code> — 타입 정보가 필요 없고, 없어도 <b>조용히 통과</b></p>
+<p>이 대비가 두 캐스트의 성격을 가장 선명하게 보여 줍니다. <b>검사를 해 주는 쪽은 조건이 까다롭고, 검사를 안 하는 쪽은 조건이 없다.</b></p>
+<p>이 구성으로 확정하고 <code>oop2week10/</code> 패키지(index.html + README + src/diagnosis·src/task1~5) 제작에 들어가도 될까요?</p>
+  </details>
+</div>
+    </div>
+  </section>
+
+  <section class="block" id="impl-block">
+    <div class="block-head">
+      <span class="idx">03</span>
+      <h2>직접 구현해 보기 — 3과제</h2>
+    </div>
+    <p class="lead">순서대로 하면 앞 과제의 결과물이 다음 과제의 재료가 됩니다 — 과제1에서 만든 라이브러리를 과제3에서 다시 씁니다.</p>
+    <div class="tlist">
+<div class="tcard">
+  <h3 class="ttitle">과제1 [하] 기반 클래스를 목적 라이브러리로 만들어 상속하기</h3>
+  <p>(11.6)<br>제공 코드 — 라이브러리로 만들 두 파일</p>
+<pre>// Employee.h
+#pragma once
+#include &lt;string&gt;
+class Employee {
+public:
+    Employee(const std::string&amp; name);
+    virtual ~Employee();
+const std::string&amp; getName() const;
+virtual double earnings() const;   // 기반 기본 구현: 0.0 (다음 주 12.5에서 순수 가상으로 바꿉니다)
+    virtual void print() const;
+private:
+    std::string name_;
+};</pre>
+<pre>// Employee.cpp
+#include "Employee.h"
+#include &lt;iostream&gt;
+Employee::Employee(const std::string&amp; name) : name_(name) {}
+Employee::~Employee() {}
+const std::string&amp; Employee::getName() const { return name_; }
+double Employee::earnings() const { return 0.0; }
+void Employee::print() const { std::cout &lt;&lt; "name: " &lt;&lt; name_ &lt;&lt; std::endl; }</pre>
+<p>따라하기<br>1. 새 프로젝트 → <b>Windows 데스크톱 → 정적 라이브러리</b> → 이름 <code>EmployeeLib</code><br>2. <code>Employee.h</code> / <code>Employee.cpp</code> 추가 → 빌드 → <code>EmployeeLib.lib</code> 생성 확인 (x64/Debug)<br>3. 새 프로젝트 → <b>콘솔 앱</b> → 이름 <code>PayrollApp</code><br>4. <code>EmployeeLib.lib</code>와 <code>Employee.h</code>를 <code>PayrollApp</code> 폴더로 복사한다 — <b>Employee.cpp는 복사하지 않는다</b><br>5. <code>main.cpp</code>에서 <code>#include "Employee.h"</code> 아래에 한 줄 추가: <code>#pragma comment(lib, "EmployeeLib.lib")</code> — 링커가 못 찾으면 프로젝트 속성 → 링커 → 일반 → <b>추가 라이브러리 디렉터리</b>에 lib가 있는 폴더를 넣는다<br>6. <code>SalariedEmployee</code>를 작성한다 — <code>class SalariedEmployee : public Employee</code>, 생성자에서 기반 생성자 호출, <code>earnings()</code>를 월급으로, <code>print()</code>에서 <code>Employee::print()</code> 호출 후 월급 출력<br>7. 빌드·실행<br>예시 출력(실행 결과)</p>
+<pre>name: Kim
+  월급: 3200
+earnings: 3200</pre>
+<p>확인·기록<br>① Employee.cpp가 프로젝트에 없는데 왜 링크되는가 — 헤더와 .lib의 역할을 각각 한 줄로<br>② 기반 포인터 <code>Employee* p = &amp;e;</code>로 <code>p-&gt;earnings()</code>를 부르면 파생 값이 나오는가 — 나온다면 그 이유(가상 함수가 라이브러리 안 클래스에 이미 선언되어 있다)<br>③ <b>실패 실험</b>: <code>#pragma comment(lib, ...)</code> 줄을 지우고 빌드 → 링크 오류(<code>Employee::Employee</code> 확인 안 됨, LNK2019 계열)를 캡처해 붙인다. 되돌려서 다시 빌드되는지까지 확인<br>④ 정리: "소스 없이 상속이 가능한 이유"를 두 줄로<br>포인트: ③이 이 과제의 핵심입니다. 헤더만으로는 <b>선언</b>만 있고 <b>정의</b>는 .lib에 있다는 것을 링크 오류로 직접 확인합니다. 11.6의 "헤더 + 목적 코드"가 바로 이 구조입니다.</p>
+  <details class="sol"><summary>모범 답안 보기</summary>
+    <p class="cap">Employee.h (라이브러리)</p><pre>#pragma once
+#include &lt;string&gt;
+
+class Employee {
+public:
+    Employee(const std::string&amp; name);
+    virtual ~Employee();
+
+    const std::string&amp; getName() const;
+
+    virtual double earnings() const;
+    virtual void print() const;
+
+private:
+    std::string name_;
+};</pre>
+<p class="cap">Employee.cpp (라이브러리 — 프로젝트에는 넣지 않음)</p><pre>#include "Employee.h"
+#include &lt;iostream&gt;
+
+Employee::Employee(const std::string&amp; name) : name_(name) {}
+Employee::~Employee() {}
+
+const std::string&amp; Employee::getName() const { return name_; }
+
+double Employee::earnings() const { return 0.0; }
+
+void Employee::print() const {
+    std::cout &lt;&lt; "name: " &lt;&lt; name_ &lt;&lt; std::endl;
+}</pre>
+<p class="cap">SalariedEmployee.h</p><pre>// 과제1 [하] — 라이브러리를 상속한 파생 클래스 (모범답안)
+// Employee.h / EmployeeLib.lib 는 라이브러리에서 오고, 소스 Employee.cpp 는 이 프로젝트에 없다.
+#pragma once
+#include "Employee.h"
+#include &lt;string&gt;
+
+class SalariedEmployee : public Employee {
+public:
+    SalariedEmployee(const std::string&amp; name, double monthlySalary);
+    double earnings() const;
+    void print() const;
+private:
+    double monthlySalary_;
+};</pre>
+<p class="cap">SalariedEmployee.cpp</p><pre>#include "SalariedEmployee.h"
+#include &lt;iostream&gt;
+
+SalariedEmployee::SalariedEmployee(const std::string&amp; name, double monthlySalary)
+    : Employee(name), monthlySalary_(monthlySalary) {}
+
+double SalariedEmployee::earnings() const {
+    return monthlySalary_;
+}
+
+void SalariedEmployee::print() const {
+    Employee::print();
+    std::cout &lt;&lt; "  월급: " &lt;&lt; monthlySalary_ &lt;&lt; std::endl;
+}</pre>
+<p class="cap">main.cpp</p><pre>// 과제1 [하] — main (모범답안)
+// VS: EmployeeLib.lib 와 Employee.h 를 이 프로젝트 폴더에 두고 아래 한 줄을 쓴다.
+#pragma comment(lib, "EmployeeLib.lib")
+
+#include &lt;iostream&gt;
+#include "Employee.h"
+#include "SalariedEmployee.h"
+
+int main() {
+    SalariedEmployee e("Kim", 3200.0);
+
+    e.print();
+    std::cout &lt;&lt; "earnings: " &lt;&lt; e.earnings() &lt;&lt; std::endl;
+
+    // 라이브러리 안 기반 클래스에 virtual 이 선언되어 있으므로 파생 값이 나온다
+    Employee* p = &amp;e;
+    p-&gt;print();
+    std::cout &lt;&lt; "earnings: " &lt;&lt; p-&gt;earnings() &lt;&lt; std::endl;
+
+    return 0;
+}</pre>
+  </details>
+</div>
+<div class="tcard">
+  <h3 class="ttitle">과제2 [중] 다형성으로 설계하기 — 도형 계층</h3>
+  <p>이 과제는 코드를 주지 않습니다. <b>설계 카드 4칸을 먼저 쓰고</b>, 그 다음 구현합니다.<br>설계 카드(제출)<br>① 기반 <code>Shape</code>에 둘 것 — 모든 도형이 공통으로 가진 것<br>② 그중 <b>virtual</b>로 둘 것 — 도형마다 답이 달라지는 것<br>③ 파생마다 새로 가지는 것 — 면적 계산에 필요한 값<br>④ <code>main</code>이 알아야 할 것 — <b>파생 타입의 이름이 main에 나오면 안 된다</b>는 조건에서 출발<br>요구사항<br>① <code>Shape</code> 기반 + <code>Circle</code>, <code>Rectangle</code>, <code>Triangle</code><br>② 각 도형은 <code>print()</code>로 <code>이름: 면적</code>을 출력한다(면적은 소수 둘째 자리까지)<br>③ main은 <code>Shape* shapes[3]</code>에 세 도형의 주소를 담고, 반복문 <b>하나로</b> 전부 출력한다<br>④ 같은 반복문에서 총 면적과 <b>가장 넓은 도형의 이름</b>을 구한다<br>⑤ 조건문에 <code>if (도형종류 == 원)</code> 같은 타입 분기를 쓰지 않는다 — 필요한 정보는 전부 가상 함수가 돌려준다<br>⑥ 확장 시험: <code>Trapezoid</code>(사다리꼴, <code>(윗변+아랫변)*높이/2</code>)를 추가하고 <b>main은 한 글자도 고치지 않고</b> 네 줄이 나오는지 확인한다. 설계 카드 ②가 맞았다면 0줄, 틀렸다면 고친 줄 수를 적는다<br>⑦ 이번 과제는 스택 객체만 쓰므로 소멸자는 virtual이 아니어도 된다. 다만 <b>기반 포인터로 delete할 수 있는 설계</b>로 바꾼다면 무엇을 고쳐야 하는지 한 줄로 적는다(과제3에서 실제로 확인)<br>예시 출력(실행 결과)</p>
+<pre>원: 28.27
+직사각형: 20.00
+삼각형: 6.00
+총 면적: 54.27
+가장 넓은 도형: 원</pre>
+  <details class="sol"><summary>모범 답안 보기</summary>
+    <p class="cap">main.cpp (모범답안)</p><pre>// 과제2 [중] — 도형 계층 설계 (모범답안, Linux 검증용: #pragma comment 는 주석)
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include &lt;string&gt;
+
+class Shape {
+public:
+    virtual ~Shape() = default;
+    virtual std::string name() const { return "도형"; }
+    virtual double area() const { return 0.0; }
+    virtual void print() const {
+        std::cout &lt;&lt; name() &lt;&lt; ": " &lt;&lt; std::fixed &lt;&lt; std::setprecision(2) &lt;&lt; area() &lt;&lt; std::endl;
+    }
+};
+
+class Circle : public Shape {
+public:
+    Circle(double r) : r_(r) {}
+    std::string name() const { return "원"; }
+    double area() const { return 3.14159 * r_ * r_; }
+private:
+    double r_;
+};
+
+class Rectangle : public Shape {
+public:
+    Rectangle(double w, double h) : w_(w), h_(h) {}
+    std::string name() const { return "직사각형"; }
+    double area() const { return w_ * h_; }
+private:
+    double w_, h_;
+};
+
+class Triangle : public Shape {
+public:
+    Triangle(double base, double height) : base_(base), height_(height) {}
+    std::string name() const { return "삼각형"; }
+    double area() const { return base_ * height_ / 2.0; }
+private:
+    double base_, height_;
+};
+
+int main() {
+    Circle circle(3.0);
+    Rectangle rect(4.0, 5.0);
+    Triangle tri(6.0, 2.0);
+
+    Shape* shapes[3] = { &amp;circle, &amp;rect, &amp;tri };
+
+    double total = 0.0;
+    const Shape* widest = shapes[0];
+    for (int i = 0; i &lt; 3; ++i) {
+        shapes[i]-&gt;print();
+        total += shapes[i]-&gt;area();
+        if (shapes[i]-&gt;area() &gt; widest-&gt;area()) {
+            widest = shapes[i];
+        }
+    }
+    std::cout &lt;&lt; "총 면적: " &lt;&lt; std::fixed &lt;&lt; std::setprecision(2) &lt;&lt; total &lt;&lt; std::endl;
+    std::cout &lt;&lt; "가장 넓은 도형: " &lt;&lt; widest-&gt;name() &lt;&lt; std::endl;
+
+    return 0;
+}</pre>
+  </details>
+</div>
+<div class="tcard">
+  <h3 class="ttitle">과제3 [상] 라이브러리를 다시 써서 급여 시스템 만들기</h3>
+  <p>(12.4 + 12.4.6)<br>과제1에서 만든 <code>EmployeeLib.lib</code>를 그대로 씁니다. 파생 3개를 만들고, 기반 포인터 배열로 전부 처리합니다.<br>요구사항<br>① <code>SalariedEmployee</code>(월급), <code>HourlyEmployee</code>(시급×시간, <b>40시간 초과분은 1.5배</b>), <code>CommissionEmployee</code>(판매액×수수료율) — 셋 다 <code>earnings()</code>, <code>print()</code>, 소멸자에서 <code>[소멸] 클래스(이름)</code> 출력<br>② main</p>
+<pre>Employee** staff = new Employee*[4];
+staff[0] = new SalariedEmployee("Kim", 3200.0);
+staff[1] = new HourlyEmployee("Lee", 20.0, 45.0);
+staff[2] = new CommissionEmployee("Park", 20000.0, 0.05);
+staff[3] = new SalariedEmployee("Choi", 2800.0);</pre>
+<p>③ 반복문 하나로 <code>print()</code>·<code>earnings()</code>를 호출하고 <b>총 급여</b>를 구한다<br>④ <code>dynamic_cast&lt;HourlyEmployee*&gt;</code>로 시간외 근무자(40시간 초과)만 골라 이름을 출력한다. <code>nullptr</code> 검사를 반드시 넣는다<br>⑤ 역순으로 <code>delete</code>, 그 다음 <code>delete[]</code><br>⑥ <b>실험</b>: <code>Employee.h</code>의 <code>virtual ~Employee()</code>에서 <code>virtual</code>을 빼고 <b>라이브러리를 다시 빌드</b>한 뒤 ⑤를 다시 실행한다 — 소멸 로그가 몇 줄이 되는지 적는다. 확인 후 <code>virtual</code>을 되돌려 <b>다시 빌드</b>한다<br>⑦ 정리: ⑥의 결과가 "라이브러리를 고쳐야만 바뀐다"는 사실과, 기반 소멸자가 virtual이어야 하는 이유를 두 줄로<br>예시 출력(실행 결과)</p>
+<pre>[생성] SalariedEmployee(Kim)
+[생성] HourlyEmployee(Lee)
+[생성] CommissionEmployee(Park)
+[생성] SalariedEmployee(Choi)
+--- 명단 ---
+name: Kim
+  월급: 3200
+name: Lee
+  시급: 20, 시간: 45
+name: Park
+  판매액: 20000, 수수료율: 0.05
+name: Choi
+  월급: 2800
+총 급여: 7950.00
+--- 시간외 근무자 ---
+Lee
+--- 정리 ---
+[소멸] SalariedEmployee(Choi)
+[소멸] CommissionEmployee(Park)
+[소멸] HourlyEmployee(Lee)
+[소멸] SalariedEmployee(Kim)</pre>
+<p>⑥ 실행 결과: <code>virtual</code>을 빼고 라이브러리를 다시 빌드하면 소멸 로그가 <b>4줄 → 0줄</b>이 됩니다(파생 소멸자가 전혀 불리지 않음).<br><b>진단 5 보강</b>(3파트에서 뺀 UB 실험 흡수): 진단 5에 심화 관찰 두 줄을 붙입니다 — ⑴ <code>sizeof(Animal)</code>과 <code>sizeof(Dog)</code>를 출력 ⑵ Dog가 <code>new int[10]</code>을 잡고 "아직 정리되지 않은 버퍼 수"를 세는 정적 카운터를 두어, <code>delete q;</code> 뒤 값이 1로 남는지 확인. 실행 결과: 40 / 48, 버퍼 <b>1개 잔존</b>(virtual을 붙이면 0). 여기에 여유가 있으면 <code>static void operator delete(void*, std::size_t)</code>로 <b>해제 크기</b>(40 vs 48)까지 찍어 보게 하겠습니다.<br>이 구성으로 확정하고 <code>oop2week10/</code> 패키지 제작에 들어가도 될까요? 패키지에는 <code>src/diagnosis/</code>(제공 코드 2벌), <code>src/task1/{library,solution}</code>, <code>src/task2</code>, <code>src/task3</code>을 넣고, 1번 과제는 VS 화면 순서를 스크린샷 없이도 따라갈 수 있게 단계별로 적겠습니다.</p>
+  <details class="sol"><summary>모범 답안 보기</summary>
+    <p class="cap">main.cpp (모범답안)</p><pre>// 과제3 [상] — 급여 시스템 (모범답안). 과제1의 EmployeeLib.lib 를 그대로 쓴다.
+// VS: 프로젝트 폴더에 Employee.h / EmployeeLib.lib 복사 + #pragma comment(lib, "EmployeeLib.lib")
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include &lt;string&gt;
+#include "Employee.h"
+
+class SalariedEmployee : public Employee {
+public:
+    SalariedEmployee(const std::string&amp; name, double monthly)
+        : Employee(name), monthly_(monthly) {
+        std::cout &lt;&lt; "[생성] SalariedEmployee(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl;
+    }
+    ~SalariedEmployee() { std::cout &lt;&lt; "[소멸] SalariedEmployee(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl; }
+    double earnings() const { return monthly_; }
+    void print() const {
+        Employee::print();
+        std::cout &lt;&lt; "  월급: " &lt;&lt; monthly_ &lt;&lt; std::endl;
+    }
+private:
+    double monthly_;
+};
+
+class HourlyEmployee : public Employee {
+public:
+    HourlyEmployee(const std::string&amp; name, double wage, double hours)
+        : Employee(name), wage_(wage), hours_(hours) {
+        std::cout &lt;&lt; "[생성] HourlyEmployee(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl;
+    }
+    ~HourlyEmployee() { std::cout &lt;&lt; "[소멸] HourlyEmployee(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl; }
+    double earnings() const {
+        if (hours_ &lt;= 40.0) return wage_ * hours_;
+        return wage_ * 40.0 + wage_ * 1.5 * (hours_ - 40.0);
+    }
+    bool isOvertime() const { return hours_ &gt; 40.0; }
+    void print() const {
+        Employee::print();
+        std::cout &lt;&lt; "  시급: " &lt;&lt; wage_ &lt;&lt; ", 시간: " &lt;&lt; hours_ &lt;&lt; std::endl;
+    }
+private:
+    double wage_, hours_;
+};
+
+class CommissionEmployee : public Employee {
+public:
+    CommissionEmployee(const std::string&amp; name, double sales, double rate)
+        : Employee(name), sales_(sales), rate_(rate) {
+        std::cout &lt;&lt; "[생성] CommissionEmployee(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl;
+    }
+    ~CommissionEmployee() { std::cout &lt;&lt; "[소멸] CommissionEmployee(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl; }
+    double earnings() const { return sales_ * rate_; }
+    void print() const {
+        Employee::print();
+        std::cout &lt;&lt; "  판매액: " &lt;&lt; sales_ &lt;&lt; ", 수수료율: " &lt;&lt; rate_ &lt;&lt; std::endl;
+    }
+private:
+    double sales_, rate_;
+};
+
+int main() {
+    Employee** staff = new Employee*[4];
+    staff[0] = new SalariedEmployee("Kim", 3200.0);
+    staff[1] = new HourlyEmployee("Lee", 20.0, 45.0);
+    staff[2] = new CommissionEmployee("Park", 20000.0, 0.05);
+    staff[3] = new SalariedEmployee("Choi", 2800.0);
+
+    std::cout &lt;&lt; "\n--- 명단 ---" &lt;&lt; std::endl;
+    double total = 0.0;
+    for (int i = 0; i &lt; 4; ++i) {
+        staff[i]-&gt;print();
+        total += staff[i]-&gt;earnings();
+    }
+    std::cout &lt;&lt; "총 급여: " &lt;&lt; std::fixed &lt;&lt; std::setprecision(2) &lt;&lt; total &lt;&lt; std::endl;
+
+    std::cout &lt;&lt; "\n--- 시간외 근무자 ---" &lt;&lt; std::endl;
+    for (int i = 0; i &lt; 4; ++i) {
+        HourlyEmployee* h = dynamic_cast&lt;HourlyEmployee*&gt;(staff[i]);
+        if (h != nullptr &amp;&amp; h-&gt;isOvertime()) {
+            std::cout &lt;&lt; h-&gt;getName() &lt;&lt; std::endl;
+        }
+    }
+
+    std::cout &lt;&lt; "\n--- 정리 ---" &lt;&lt; std::endl;
+    for (int i = 3; i &gt;= 0; --i) delete staff[i];
+    delete[] staff;
+    return 0;
+}</pre>
+  </details>
+</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>교재 · Deitel, <i>C++ How to Program</i> 10/e — 11장 상속(11.4~11.6), 12장 다형성(12.1~12.4.6)</p>
+  <p>이번 범위 제외 · 12.5 추상 클래스와 순수 가상 함수(다음 주)</p>
+</footer>
+
+<script>
+document.querySelectorAll('.qcard').forEach(function(card){
+  var ans = card.getAttribute('data-ans');
+  var fb = card.querySelector('.feedback');
+  card.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (card.classList.contains('done')) return;
+      var k = btn.getAttribute('data-k');
+      if (k === ans) {
+        btn.classList.add('mark-correct');
+        fb.textContent = '정답입니다.';
+        fb.className = 'feedback ok';
+        card.classList.add('done');
+      } else {
+        btn.classList.add('mark-wrong');
+        fb.textContent = '다시 — 해설을 보고 판단해 보세요.';
+        fb.className = 'feedback no';
+        fb.hidden = false;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
