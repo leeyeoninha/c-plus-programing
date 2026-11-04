@@ -345,6 +345,65 @@
   .review li::before{ content:"A1"; position: absolute; left: 0; top: 0; color: var(--amber); font-family: var(--mono); }
   .review p.guide{ margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed var(--line);
     font-size: 13.5px; color: var(--ink-dim); }
+
+  /* 10주차 — 진단 기록표 / 카드 내 표 */
+  table.rec{ width:100%; border-collapse:collapse; margin:14px 0 10px; font-size:13.3px; table-layout:fixed; }
+  .dcard table, .tcard table{ width:100%; border-collapse:collapse; margin:12px 0 10px; font-size:13.3px; }
+  table.rec th, table.rec td, .dcard table th, .dcard table td,
+  .tcard table th, .tcard table td{ border:1px solid var(--line); padding:7px 9px;
+    text-align:left; vertical-align:top; word-break:break-word; }
+  table.rec th, .dcard table th, .tcard table th{ background:var(--bg-raise); color:var(--ink-dim);
+    font-weight:500; font-size:12.5px; }
+  table.rec td:first-child{ width:46px; text-align:center; color:var(--amber); font-family:var(--mono); }
+  table.rec tbody tr{ height:36px; }
+  table.rec th:nth-child(1){ width:46px; }
+  table.rec th:nth-child(3){ width:28%; }
+  table.rec th:nth-child(4){ width:26%; }
+  table.rec th:nth-child(5){ width:24%; }
+
+  /* 10주차 — 코드 카드 */
+  pre{ max-width:100%; overflow-x:auto; }
+  .codecard{ background:var(--bg-raise); border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; margin:16px 0 20px; }
+  .codecard .cap{ margin:0 0 4px; font-family:var(--mono); font-size:12.5px; color:var(--amber); }
+  .codecard .desc{ margin:0 0 10px; font-size:13px; color:var(--ink-dim); }
+  .codecard pre{ margin:0; padding:0; background:transparent; font-size:12.8px; line-height:1.62;
+    white-space:pre; }
+  .dcard pre, .tcard pre, details.sol pre{ margin:10px 0 0; padding:12px 14px; background:var(--bg-raise);
+    border:1px solid var(--line); border-radius:8px; font-size:12.8px; line-height:1.6; white-space:pre; }
+
+  /* ---------- 10주차 신규 클래스 ---------- */
+  .qcard .qn{ display:inline; font-family:var(--mono); font-size:13px; color:var(--amber);
+    margin:0 4px 0 0; }
+  .qcard .qtext{ margin:0 0 14px; font-size:15.5px; line-height:1.65; }
+  .opts{ display:flex; flex-direction:column; gap:8px; }
+  .opt{ display:grid; grid-template-columns:24px minmax(0,1fr); align-items:start; width:100%; text-align:left;
+    background:transparent; color:var(--ink); font:inherit; font-size:14.5px; line-height:1.6;
+    cursor:pointer; user-select:none; }
+  .opt:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .opt .k{ font-family:var(--mono); color:var(--amber); font-size:13px; }
+  .opt .t{ min-width:0; white-space:normal; word-break:keep-all; overflow-wrap:anywhere; }
+  .opt:hover{ background:#202633; border-color:#3a4257; }
+  .opt.mark-correct{ border-color:var(--mint); background:#16281f; }
+  .opt.mark-wrong{ border-color:var(--coral); background:#2a1a17; }
+  .opt.mark-correct .k{ color:var(--mint); }
+  .opt.mark-wrong .k{ color:var(--coral); }
+  .feedback{ margin:12px 0 0; font-size:13.5px; }
+  .feedback.ok{ color:var(--mint); }
+  .feedback.no{ color:var(--coral); }
+  details.sol{ margin-top:14px; border-top:1px dashed var(--line); padding-top:12px; }
+  details.sol summary{ cursor:pointer; font-size:13.5px; color:var(--ink-dim); font-family:var(--mono); }
+  details.sol summary:hover{ color:var(--amber); }
+  details.sol p{ margin:10px 0 0; font-size:14px; line-height:1.65; }
+  .dcard .dn{ font-family:var(--mono); font-size:12px; color:var(--coral); margin:0 0 6px; }
+  .dcard .dtitle, .tcard .ttitle{ margin:0 0 12px; font-size:16.5px; font-weight:700; color:var(--ink); }
+  .tcard{ background:var(--bg-card); border:1px solid var(--line); border-radius:10px;
+    padding:22px; margin-bottom:16px; }
+  .tcard .ttitle{ color:var(--mint); }
+  .dcard p, .tcard p{ font-size:14.5px; line-height:1.7; margin:0 0 10px; }
+  .block p.lead, .lead{ color:var(--ink-dim); font-size:14px; line-height:1.7; margin:0 0 16px; }
+  .guide{ color:var(--ink-dim); font-size:13px; margin:10px 0 0; }
+  pre{ font-family:var(--mono); color:#cdd3e0; }
 </style>
 </head>
 <body>
@@ -378,7 +437,7 @@
       <table>
         <thead><tr><th>구역</th><th>AI 사용</th><th>조건</th></tr></thead>
         <tbody>
-          <tr><td>개념 학습·예습·복습<br>(01 이해도 점검 퀴즈 포함)</td><td><b>자유</b></td><td>답을 그대로 옮기지 말고, 물어본 것은 <b>내 말로 3줄 요약</b>해 노트에 남깁니다.</td></tr>
+          <tr><td>개념 학습·예습·복습<br>(01 이론 확인 문제 포함)</td><td><b>자유</b></td><td>답을 그대로 옮기지 말고, 물어본 것은 <b>내 말로 3줄 요약</b>해 노트에 남깁니다.</td></tr>
           <tr><td>설계 카드<br>(수업 중 5분, 종이)</td><td><b>금지</b></td><td>손으로, 혼자. 설계를 대신 해 주게 하면 이 과제의 목적이 사라집니다.</td></tr>
           <tr><td>과제 코드<br>(03 실습)</td><td><b>조건부</b></td><td>사용 공개 + 구두 설명 + 자기 테스트. 세 조건을 지키면 자유롭게 쓸 수 있습니다.</td></tr>
           <tr><td>시험·퀴즈·구두 확인</td><td><b>전면 금지</b></td><td>대면·종이. 전자기기 사용 불가.</td></tr>
@@ -435,9 +494,8 @@
     <p class="lead">보기를 누르면 바로 정답 여부가 표시됩니다. 점수는 매기지 않습니다 — 틀린 문항의 해설을 읽고 넘어가세요.</p>
     <div class="qlist">
 <div class="qcard" data-ans="②">
-  <p class="qn">Q1</p>
-  <p class="qtext">Employee → CommissionEmployee → BasePlusCommissionEmployee 계층에서 BasePlusCommissionEmployee 객체를 만들 때, 생성자의 호출과 실행에 대한 설명으로 옳은 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>가장 먼저 호출되는 것은 Employee 생성자이고, 본문도 Employee 생성자가 가장 먼저 실행을 마친다</button><button class="opt" data-k="②"><span class="k">②</span>가장 먼저 호출되는 것은 BasePlusCommissionEmployee 생성자이고, 본문이 가장 먼저 실행을 마치는 것은 Employee 생성자다</button><button class="opt" data-k="③"><span class="k">③</span>가장 먼저 호출되는 것도 BasePlusCommissionEmployee 생성자이고, 본문도 BasePlusCommissionEmployee 생성자가 가장 먼저 실행을 마친다</button><button class="opt" data-k="④"><span class="k">④</span>세 생성자의 본문은 호출 순서와 같은 순서로 실행된다</button></div>
+  <p class="qtext"><span class="qn">Q1.</span> Employee → CommissionEmployee → BasePlusCommissionEmployee 계층에서 BasePlusCommissionEmployee 객체를 만들 때, 생성자의 호출과 실행에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">가장 먼저 호출되는 것은 Employee 생성자이고, 본문도 Employee 생성자가 가장 먼저 실행을 마친다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">가장 먼저 호출되는 것은 BasePlusCommissionEmployee 생성자이고, 본문이 가장 먼저 실행을 마치는 것은 Employee 생성자다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">가장 먼저 호출되는 것도 BasePlusCommissionEmployee 생성자이고, 본문도 BasePlusCommissionEmployee 생성자가 가장 먼저 실행을 마친다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">세 생성자의 본문은 호출 순서와 같은 순서로 실행된다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ②</b></p>
@@ -445,9 +503,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="④">
-  <p class="qn">Q2</p>
-  <p class="qtext">같은 계층에서 BasePlusCommissionEmployee 객체가 소멸할 때 소멸자 호출 순서로 옳은 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>Employee → CommissionEmployee → BasePlusCommissionEmployee</button><button class="opt" data-k="②"><span class="k">②</span>CommissionEmployee → BasePlusCommissionEmployee → Employee</button><button class="opt" data-k="③"><span class="k">③</span>BasePlusCommissionEmployee → Employee → CommissionEmployee</button><button class="opt" data-k="④"><span class="k">④</span>BasePlusCommissionEmployee → CommissionEmployee → Employee</button></div>
+  <p class="qtext"><span class="qn">Q2.</span> 같은 계층에서 BasePlusCommissionEmployee 객체가 소멸할 때 소멸자 호출 순서로 옳은 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">Employee → CommissionEmployee → BasePlusCommissionEmployee</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">CommissionEmployee → BasePlusCommissionEmployee → Employee</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">BasePlusCommissionEmployee → Employee → CommissionEmployee</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">BasePlusCommissionEmployee → CommissionEmployee → Employee</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ④</b></p>
@@ -455,9 +512,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="③">
-  <p class="qn">Q3</p>
-  <p class="qtext">CommissionEmployee가 Date hireDate를 값 멤버로 가질 때, BasePlusCommissionEmployee 객체가 소멸하는 과정에서 Date의 소멸자는 언제 실행되는가?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>BasePlusCommissionEmployee 소멸자 본문보다 먼저</button><button class="opt" data-k="②"><span class="k">②</span>BasePlusCommissionEmployee 소멸자 본문 직후 ~ CommissionEmployee 소멸자 본문 직전</button><button class="opt" data-k="③"><span class="k">③</span>CommissionEmployee 소멸자 본문 직후 ~ Employee 소멸자 본문 직전</button><button class="opt" data-k="④"><span class="k">④</span>Employee 소멸자 다음</button></div>
+  <p class="qtext"><span class="qn">Q3.</span> CommissionEmployee가 Date hireDate를 값 멤버로 가질 때, BasePlusCommissionEmployee 객체가 소멸하는 과정에서 Date의 소멸자는 언제 실행되는가?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">BasePlusCommissionEmployee 소멸자 본문보다 먼저</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">BasePlusCommissionEmployee 소멸자 본문 직후 ~ CommissionEmployee 소멸자 본문 직전</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">CommissionEmployee 소멸자 본문 직후 ~ Employee 소멸자 본문 직전</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">Employee 소멸자 다음</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ③</b></p>
@@ -465,9 +521,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="①">
-  <p class="qn">Q4</p>
-  <p class="qtext">public 상속에서 기반 클래스의 private 멤버에 대한 설명으로 옳은 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 클래스의 멤버 함수에서 직접 접근할 수 없다 — 기반의 public·protected 멤버 함수를 통해서만 쓸 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>파생 클래스에서 protected로 바뀐다</button><button class="opt" data-k="③"><span class="k">③</span>상속되지 않으므로 파생 객체의 크기에 포함되지 않는다</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스에서 public으로 바뀐다</button></div>
+  <p class="qtext"><span class="qn">Q4.</span> public 상속에서 기반 클래스의 private 멤버에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">파생 클래스의 멤버 함수에서 직접 접근할 수 없다 — 기반의 public·protected 멤버 함수를 통해서만 쓸 수 있다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">파생 클래스에서 protected로 바뀐다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">상속되지 않으므로 파생 객체의 크기에 포함되지 않는다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 클래스에서 public으로 바뀐다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ①</b></p>
@@ -475,9 +530,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="③">
-  <p class="qn">Q5</p>
-  <p class="qtext">class W : protected Base 에서 Base의 public 멤버 pub()은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>W의 public 멤버가 되어 외부에서 w.pub()를 호출할 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>W의 private 멤버가 된다</button><button class="opt" data-k="③"><span class="k">③</span>W의 protected 멤버가 되어 W의 멤버 함수와 그 파생 클래스에서는 접근할 수 있지만 외부에서는 호출할 수 없다</button><button class="opt" data-k="④"><span class="k">④</span>상속되지 않는다</button></div>
+  <p class="qtext"><span class="qn">Q5.</span> class W : protected Base 에서 Base의 public 멤버 pub()은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">W의 public 멤버가 되어 외부에서 w.pub()를 호출할 수 있다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">W의 private 멤버가 된다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">W의 protected 멤버가 되어 W의 멤버 함수와 그 파생 클래스에서는 접근할 수 있지만 외부에서는 호출할 수 없다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">상속되지 않는다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ③</b></p>
@@ -485,9 +539,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="②">
-  <p class="qn">Q6</p>
-  <p class="qtext">class Z : private Base 에서 Base의 public 멤버 pub()은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>Z의 public 멤버</button><button class="opt" data-k="②"><span class="k">②</span>Z의 private 멤버</button><button class="opt" data-k="③"><span class="k">③</span>Z의 protected 멤버</button><button class="opt" data-k="④"><span class="k">④</span>상속되지 않는다</button></div>
+  <p class="qtext"><span class="qn">Q6.</span> class Z : private Base 에서 Base의 public 멤버 pub()은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">Z의 public 멤버</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">Z의 private 멤버</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">Z의 protected 멤버</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">상속되지 않는다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ②</b></p>
@@ -495,9 +548,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="④">
-  <p class="qn">Q7</p>
-  <p class="qtext">상속을 통한 소프트웨어 재사용에 대한 설명으로 옳은 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 클래스를 만들려면 기반 클래스의 소스 코드가 반드시 있어야 한다</button><button class="opt" data-k="②"><span class="k">②</span>기반 클래스의 목적 코드가 없어도 헤더만 있으면 링크할 수 있다</button><button class="opt" data-k="③"><span class="k">③</span>독점 클래스는 라이선스가 있어도 상속 대상으로 쓸 수 없다</button><button class="opt" data-k="④"><span class="k">④</span>기반 클래스의 헤더와 목적 코드가 있으면 소스 없이 파생 클래스를 만들어 링크할 수 있다</button></div>
+  <p class="qtext"><span class="qn">Q7.</span> 상속을 통한 소프트웨어 재사용에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">파생 클래스를 만들려면 기반 클래스의 소스 코드가 반드시 있어야 한다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">기반 클래스의 목적 코드가 없어도 헤더만 있으면 링크할 수 있다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">독점 클래스는 라이선스가 있어도 상속 대상으로 쓸 수 없다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">기반 클래스의 헤더와 목적 코드가 있으면 소스 없이 파생 클래스를 만들어 링크할 수 있다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ④</b></p>
@@ -505,9 +557,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="①">
-  <p class="qn">Q8</p>
-  <p class="qtext">다형성(동적 바인딩)이 일어나는 경우는?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>기반 클래스 포인터나 참조로 가상 함수를 호출할 때</button><button class="opt" data-k="②"><span class="k">②</span>기반 클래스 포인터로 비가상 함수를 호출할 때</button><button class="opt" data-k="③"><span class="k">③</span>파생 클래스 객체의 이름으로 가상 함수를 호출할 때</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스 포인터로 기반 클래스 객체를 가리킬 때</button></div>
+  <p class="qtext"><span class="qn">Q8.</span> 다형성(동적 바인딩)이 일어나는 경우는?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">기반 클래스 포인터나 참조로 가상 함수를 호출할 때</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">기반 클래스 포인터로 비가상 함수를 호출할 때</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">파생 클래스 객체의 이름으로 가상 함수를 호출할 때</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 클래스 포인터로 기반 클래스 객체를 가리킬 때</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ①</b></p>
@@ -515,9 +566,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="③">
-  <p class="qn">Q9</p>
-  <p class="qtext">기반 포인터가 파생 객체를 가리킬 때, 다운캐스팅 없이 호출할 수 있는 멤버는?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 클래스가 새로 추가한 멤버</button><button class="opt" data-k="②"><span class="k">②</span>기반·파생의 모든 public 멤버</button><button class="opt" data-k="③"><span class="k">③</span>기반 클래스가 선언한 멤버</button><button class="opt" data-k="④"><span class="k">④</span>아무 멤버도 호출할 수 없다</button></div>
+  <p class="qtext"><span class="qn">Q9.</span> 기반 포인터가 파생 객체를 가리킬 때, 다운캐스팅 없이 호출할 수 있는 멤버는?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">파생 클래스가 새로 추가한 멤버</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">기반·파생의 모든 public 멤버</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">기반 클래스가 선언한 멤버</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">아무 멤버도 호출할 수 없다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ③</b></p>
@@ -525,9 +575,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="④">
-  <p class="qn">Q10</p>
-  <p class="qtext">Animal(기반)과 Dog(파생)가 있을 때 컴파일 오류가 나는 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>Animal* p = new Animal;</button><button class="opt" data-k="②"><span class="k">②</span>Dog* q = new Dog;</button><button class="opt" data-k="③"><span class="k">③</span>Animal* r = new Dog;</button><button class="opt" data-k="④"><span class="k">④</span>Dog* s = new Animal;</button></div>
+  <p class="qtext"><span class="qn">Q10.</span> Animal(기반)과 Dog(파생)가 있을 때 컴파일 오류가 나는 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">Animal* p = new Animal;</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">Dog* q = new Dog;</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">Animal* r = new Dog;</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">Dog* s = new Animal;</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ④</b></p>
@@ -535,9 +584,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="①">
-  <p class="qn">Q11</p>
-  <p class="qtext">가상 함수 호출이 동적 바인딩(실행 시점 결정)되는 조건을 가장 정확히 설명한 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>함수가 virtual이고, 기반 클래스 포인터나 참조로 호출할 때</button><button class="opt" data-k="②"><span class="k">②</span>함수가 virtual이면 호출 형태와 무관하게 항상</button><button class="opt" data-k="③"><span class="k">③</span>객체 이름으로 부르면 실행 시점, 포인터로 부르면 컴파일 시점</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스에서 virtual을 다시 선언할 때</button></div>
+  <p class="qtext"><span class="qn">Q11.</span> 가상 함수 호출이 동적 바인딩(실행 시점 결정)되는 조건을 가장 정확히 설명한 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">함수가 virtual이고, 기반 클래스 포인터나 참조로 호출할 때</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">함수가 virtual이면 호출 형태와 무관하게 항상</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">객체 이름으로 부르면 실행 시점, 포인터로 부르면 컴파일 시점</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 클래스에서 virtual을 다시 선언할 때</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ①</b></p>
@@ -545,9 +593,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="②">
-  <p class="qn">Q12</p>
-  <p class="qtext">BasePlusCommissionEmployee bob; bob.earnings(); 로 가상 함수 earnings()를 호출했다. 옳은 설명은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>컴파일 시점에 기반 버전으로 결정되어 기반 결과가 나온다</button><button class="opt" data-k="②"><span class="k">②</span>컴파일 시점에 결정되지만 호출되는 것은 bob의 클래스(파생) 버전이다</button><button class="opt" data-k="③"><span class="k">③</span>실행 시점에 객체 타입을 보고 결정된다(동적 바인딩)</button><button class="opt" data-k="④"><span class="k">④</span>파생에 virtual이 없으므로 컴파일 오류다</button></div>
+  <p class="qtext"><span class="qn">Q12.</span> BasePlusCommissionEmployee bob; bob.earnings(); 로 가상 함수 earnings()를 호출했다. 옳은 설명은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">컴파일 시점에 기반 버전으로 결정되어 기반 결과가 나온다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">컴파일 시점에 결정되지만 호출되는 것은 bob의 클래스(파생) 버전이다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">실행 시점에 객체 타입을 보고 결정된다(동적 바인딩)</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생에 virtual이 없으므로 컴파일 오류다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ②</b></p>
@@ -555,9 +602,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="③">
-  <p class="qn">Q13</p>
-  <p class="qtext">기반에서만 virtual로 선언하고, 파생에서는 virtual 없이 같은 시그니처로 재정의했다. 파생의 함수는?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>비가상이 되어 기반 포인터로 부르면 기반 버전이 실행된다</button><button class="opt" data-k="②"><span class="k">②</span>가상이지만 기반 포인터로 부르면 기반 버전이 실행된다</button><button class="opt" data-k="③"><span class="k">③</span>가상이며 기반 포인터로 불러도 파생 버전이 실행된다</button><button class="opt" data-k="④"><span class="k">④</span>virtual을 다시 쓰지 않았으므로 컴파일 오류다</button></div>
+  <p class="qtext"><span class="qn">Q13.</span> 기반에서만 virtual로 선언하고, 파생에서는 virtual 없이 같은 시그니처로 재정의했다. 파생의 함수는?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">비가상이 되어 기반 포인터로 부르면 기반 버전이 실행된다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">가상이지만 기반 포인터로 부르면 기반 버전이 실행된다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">가상이며 기반 포인터로 불러도 파생 버전이 실행된다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">virtual을 다시 쓰지 않았으므로 컴파일 오류다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ③</b></p>
@@ -565,9 +611,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="④">
-  <p class="qn">Q14</p>
-  <p class="qtext">dynamic_cast에 대한 설명으로 옳은 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>기반 클래스에 가상 함수가 없어도 사용할 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>변환에 실패하면 예외를 던진다</button><button class="opt" data-k="③"><span class="k">③</span>static_cast와 동작이 같고 문법만 다르다</button><button class="opt" data-k="④"><span class="k">④</span>기반 클래스에 가상 함수가 있는 다형 타입에서만 동작하며, 실패하면 nullptr을 돌려준다</button></div>
+  <p class="qtext"><span class="qn">Q14.</span> dynamic_cast에 대한 설명으로 옳은 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">기반 클래스에 가상 함수가 없어도 사용할 수 있다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">변환에 실패하면 예외를 던진다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">static_cast와 동작이 같고 문법만 다르다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">기반 클래스에 가상 함수가 있는 다형 타입에서만 동작하며, 실패하면 nullptr을 돌려준다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ④</b></p>
@@ -575,9 +620,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="②">
-  <p class="qn">Q15</p>
-  <p class="qtext">기반 포인터 p가 파생 객체를 가리킬 때 delete p; 를 했는데 기반 소멸자가 virtual이 아니었다. 옳은 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>파생 소멸자와 기반 소멸자가 모두 호출된다</button><button class="opt" data-k="②"><span class="k">②</span>기반 소멸자만 호출되고, 표준은 이 동작을 정의하지 않는다</button><button class="opt" data-k="③"><span class="k">③</span>컴파일 오류가 난다</button><button class="opt" data-k="④"><span class="k">④</span>파생 소멸자만 호출된다</button></div>
+  <p class="qtext"><span class="qn">Q15.</span> 기반 포인터 p가 파생 객체를 가리킬 때 delete p; 를 했는데 기반 소멸자가 virtual이 아니었다. 옳은 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">파생 소멸자와 기반 소멸자가 모두 호출된다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">기반 소멸자만 호출되고, 표준은 이 동작을 정의하지 않는다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">컴파일 오류가 난다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 소멸자만 호출된다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ②</b></p>
@@ -585,9 +629,8 @@
   </details>
 </div>
 <div class="qcard" data-ans="①">
-  <p class="qn">Q16</p>
-  <p class="qtext">type field와 switch로 타입을 분기하는 방식의 문제로 옳은 것은?</p>
-  <div class="opts"><button class="opt" data-k="①"><span class="k">①</span>타입 검사를 빠뜨리거나, 새 타입을 추가할 때 case를 빠뜨릴 수 있다</button><button class="opt" data-k="②"><span class="k">②</span>가상 함수보다 항상 느리다</button><button class="opt" data-k="③"><span class="k">③</span>컴파일러가 가상 함수를 자동으로 만들어 준다</button><button class="opt" data-k="④"><span class="k">④</span>파생 클래스가 기반 클래스를 상속할 수 없게 된다</button></div>
+  <p class="qtext"><span class="qn">Q16.</span> type field와 switch로 타입을 분기하는 방식의 문제로 옳은 것은?</p>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">타입 검사를 빠뜨리거나, 새 타입을 추가할 때 case를 빠뜨릴 수 있다</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">가상 함수보다 항상 느리다</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">컴파일러가 가상 함수를 자동으로 만들어 준다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 클래스가 기반 클래스를 상속할 수 없게 된다</span></div></div>
   <p class="feedback" hidden></p>
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p><b>정답 ①</b></p>
@@ -623,9 +666,17 @@
 class Animal {
 public:
     Animal(const std::string&amp; name) : name_(name) {}
-    virtual ~Animal() { std::cout &lt;&lt; "[소멸] Animal(" &lt;&lt; name_ &lt;&lt; ")" &lt;&lt; std::endl; }
-    virtual void makeSound() const { std::cout &lt;&lt; "Some sound" &lt;&lt; std::endl; }
+
+    virtual ~Animal() {
+        std::cout &lt;&lt; "[소멸] Animal(" &lt;&lt; name_ &lt;&lt; ")" &lt;&lt; std::endl;
+    }
+
+    virtual void makeSound() const {
+        std::cout &lt;&lt; "Some sound" &lt;&lt; std::endl;
+    }
+
     const std::string&amp; getName() const { return name_; }
+
 private:
     std::string name_;
 };
@@ -633,12 +684,20 @@ private:
 class Dog : public Animal {
 public:
     Dog(const std::string&amp; name) : Animal(name), ball_(new int[10]) {}
+
     ~Dog() {
         std::cout &lt;&lt; "[소멸] Dog(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl;
         delete[] ball_;
     }
-    void makeSound() const { std::cout &lt;&lt; "Woof!" &lt;&lt; std::endl; }
-    void fetch() const { std::cout &lt;&lt; "공을 물어 옵니다." &lt;&lt; std::endl; }
+
+    void makeSound() const {
+        std::cout &lt;&lt; "Woof!" &lt;&lt; std::endl;
+    }
+
+    void fetch() const {
+        std::cout &lt;&lt; "공을 물어 옵니다." &lt;&lt; std::endl;
+    }
+
 private:
     int* ball_;
 };
@@ -646,11 +705,19 @@ private:
 class Cat : public Animal {
 public:
     Cat(const std::string&amp; name) : Animal(name) {}
-    ~Cat() { std::cout &lt;&lt; "[소멸] Cat(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl; }
-    void makeSound() const { std::cout &lt;&lt; "Meow!" &lt;&lt; std::endl; }
+
+    ~Cat() {
+        std::cout &lt;&lt; "[소멸] Cat(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; std::endl;
+    }
+
+    void makeSound() const {
+        std::cout &lt;&lt; "Meow!" &lt;&lt; std::endl;
+    }
 };
 
-void makeAnimalSound(const Animal&amp; animal) { animal.makeSound(); }
+void makeAnimalSound(const Animal&amp; animal) {
+    animal.makeSound();
+}
 
 int main() {
     Dog dog("바둑이");
@@ -666,7 +733,7 @@ int main() {
 
     return 0;
 }</pre>
-  <p class="desc">기준선 출력: <code>Woof!</code> / <code>Meow!</code> / <code>[소멸] Dog(순돌이)</code> / <code>[소멸] Animal(순돌이)</code> / <code>[소멸] Cat(나비)</code> / <code>[소멸] Animal(나비)</code> / <code>[소멸] Dog(바둑이)</code> / <code>[소멸] Animal(바둑이)</code></p>
+  
 </div>
 <div class="dcard">
   <p class="dn">진단 1</p>
@@ -709,30 +776,7 @@ Dog* r = &amp;animal;</pre>
   <p class="dn">진단 5</p>
   <h3 class="dtitle">가상 소멸자</h3>
   <p>바꾸기: <code>virtual ~Animal()</code>에서 <code>virtual</code>만 삭제</p>
-  <pre>class Animal {
-public:
-    enum AnimalType { CAT, DOG, BIRD };
-    Animal(AnimalType type) : type_(type) {}
-    AnimalType getType() const { return type_; }
-private:
-    AnimalType type_;
-};
-class Cat  : public Animal { public: Cat()  : Animal(CAT)  {} void makeSound() const { std::cout &lt;&lt; "Meow!"  &lt;&lt; std::endl; } };
-class Dog  : public Animal { public: Dog()  : Animal(DOG)  {} void makeSound() const { std::cout &lt;&lt; "Woof!"  &lt;&lt; std::endl; } };
-class Bird : public Animal { public: Bird() : Animal(BIRD) {} void makeSound() const { std::cout &lt;&lt; "Tweet!" &lt;&lt; std::endl; } };
-
-void makeAnimalSound(const Animal&amp; animal) {
-    switch (animal.getType()) {
-    case Animal::CAT:  static_cast&lt;const Cat&amp;&gt;(animal).makeSound();  break;
-    case Animal::DOG:  static_cast&lt;const Dog&amp;&gt;(animal).makeSound();  break;
-    case Animal::BIRD: static_cast&lt;const Bird&amp;&gt;(animal).makeSound(); break;
-    default: std::cout &lt;&lt; "Unknown animal sound!" &lt;&lt; std::endl;
-    }
-}
-int main() {
-    Cat cat; Dog dog; Bird bird;
-    makeAnimalSound(cat); makeAnimalSound(dog); makeAnimalSound(bird);
-}</pre>
+  
   <details class="sol"><summary>정답 및 해설 보기</summary>
     <p>증상: <code>delete q;</code>에서 <code>[소멸] Animal(순돌이)</code>만 찍히고 <b><code>[소멸] Dog(순돌이)</code>가 사라진다.</b> Dog가 잡은 <code>new int[10]</code>은 남는다.<br>원인: delete는 포인터의 정적 타입(Animal)으로 처리된다. 소멸자가 virtual이 아니면 실제 타입을 볼 통로(vtable)를 쓰지 않는다.<br>수정: <code>virtual ~Animal() = default;</code><br>확인: 되돌린 뒤 같은 줄이 두 줄(<code>Dog</code> → <code>Animal</code>)로 돌아오는지 본다.</p>
 <p><b>심화 — "표준이 정의하지 않는다"를 수치로 확인</b> (같은 실험 파일에 추가)<br>⑴ <code>sizeof(Animal)</code>과 <code>sizeof(Dog)</code>를 출력한다 — 40 / 48<br>⑵ Dog 생성자에서 <code>new int[10]</code>을 잡고, 아직 정리되지 않은 버퍼 수를 세는 정적 카운터를 둔다(생성 +1, 소멸 −1)<br>⑶ <code>Animal* p = new Dog("바둑이"); delete p;</code> 실행 → 소멸 로그·카운터·delete 전후를 출력(실행 결과: <code>[소멸] Animal</code> 한 줄, 카운터 <b>1</b>)<br>⑷ <code>virtual ~Animal()</code>을 붙여 다시 실행 → <code>[소멸] Dog</code> → <code>[소멸] Animal</code>, 카운터 <b>0</b><br>⑸ (여유가 있으면) 두 클래스에 <code>static void operator delete(void*, std::size_t)</code>를 정의해 delete가 넘기는 크기를 출력 — 기반 포인터 delete는 <b>40</b>(실제 할당은 48), 파생 포인터 delete는 <b>48</b><br>정리: 소멸자를 고르지 못한 것(파생 자원 미정리)과 해제 크기가 어긋난 것(40 vs 48)이 <b>같은 원인</b>이다 — 동적 타입을 알 통로(vtable)를 쓰지 않았기 때문. 올바른 동작을 정의할 방법이 없어 표준이 UB로 남긴다.</p>
@@ -749,9 +793,24 @@ public:
 private:
     AnimalType type_;
 };
-class Cat  : public Animal { public: Cat()  : Animal(CAT)  {} void makeSound() const { std::cout &lt;&lt; "Meow!"  &lt;&lt; std::endl; } };
-class Dog  : public Animal { public: Dog()  : Animal(DOG)  {} void makeSound() const { std::cout &lt;&lt; "Woof!"  &lt;&lt; std::endl; } };
-class Bird : public Animal { public: Bird() : Animal(BIRD) {} void makeSound() const { std::cout &lt;&lt; "Tweet!" &lt;&lt; std::endl; } };
+
+class Cat : public Animal {
+public:
+    Cat() : Animal(CAT) {}
+    void makeSound() const { std::cout &lt;&lt; "Meow!" &lt;&lt; std::endl; }
+};
+
+class Dog : public Animal {
+public:
+    Dog() : Animal(DOG) {}
+    void makeSound() const { std::cout &lt;&lt; "Woof!" &lt;&lt; std::endl; }
+};
+
+class Bird : public Animal {
+public:
+    Bird() : Animal(BIRD) {}
+    void makeSound() const { std::cout &lt;&lt; "Tweet!" &lt;&lt; std::endl; }
+};
 
 void makeAnimalSound(const Animal&amp; animal) {
     switch (animal.getType()) {
@@ -761,9 +820,14 @@ void makeAnimalSound(const Animal&amp; animal) {
     default: std::cout &lt;&lt; "Unknown animal sound!" &lt;&lt; std::endl;
     }
 }
+
 int main() {
-    Cat cat; Dog dog; Bird bird;
-    makeAnimalSound(cat); makeAnimalSound(dog); makeAnimalSound(bird);
+    Cat cat;
+    Dog dog;
+    Bird bird;
+    makeAnimalSound(cat);
+    makeAnimalSound(dog);
+    makeAnimalSound(bird);
 }</pre>
   
 </div>
