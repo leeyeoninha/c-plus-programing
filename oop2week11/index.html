@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C++ 11주차 · 추상 클래스와 스트림 — 확인 학습</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10131a;
+    --bg-raise: #171b24;
+    --bg-card: #1c212c;
+    --line: #2a3040;
+    --ink: #e7e9ee;
+    --ink-dim: #8b93a7;
+    --amber: #f2b84b;
+    --amber-dim: #7a611f;
+    --mint: #7fd8a6;
+    --mint-dim: #234433;
+    --coral: #e8836e;
+    --coral-dim: #472a24;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, #1a2130 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height:1.6;
+    padding: 0 0 96px;
+  }
+  a{ color: var(--amber); }
+
+  /* ---------- window chrome ---------- */
+  .titlebar{
+    display:flex; align-items:center; gap:8px;
+    padding: 12px 20px;
+    background: var(--bg-raise);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index: 20;
+  }
+  .dot{ width:11px; height:11px; border-radius:50%; }
+  .dot.r{ background:#e8836e55; border:1px solid #e8836e; }
+  .dot.y{ background:#f2b84b55; border:1px solid #f2b84b; }
+  .dot.g{ background:#7fd8a655; border:1px solid #7fd8a6; }
+  .filename{
+    margin-left: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .score-pill{
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-dim);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 5px 12px;
+    border-radius: 100px;
+  }
+  .score-pill.done{ color: var(--mint); border-color: var(--mint-dim); }
+
+  /* ---------- header / hero ---------- */
+  header.hero{
+    max-width: 760px; margin: 0 auto;
+    padding: 56px 24px 40px;
+  }
+  .eyebrow-line{
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    margin: 0 0 14px;
+  }
+  header.hero h1{
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.25;
+    margin: 0 0 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.hero p{
+    color: var(--ink-dim);
+    font-size: 16px;
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  main{ max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  section.block{ margin: 48px 0; }
+  .block-head{
+    display:flex; align-items:baseline; gap: 10px;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .block-head .idx{
+    font-family: var(--mono); color: var(--amber); font-size: 14px;
+  }
+  .block-head h2{ font-size: 20px; margin:0; font-weight: 700; }
+
+  /* ---------- quiz card ---------- */
+  .qcard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 22px 20px;
+    margin-bottom: 16px;
+    transition: border-color .2s ease;
+  }
+  .qcard .qtag{
+    font-family: var(--mono); font-size: 12px; color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  .qcard p.prompt{
+    margin: 0 0 16px;
+    font-size: 15.5px;
+    white-space: pre-wrap;
+  }
+  .prompt code, pre.snippet{
+    font-family: var(--mono);
+    font-size: 13.5px;
+  }
+  pre.snippet{
+    background: #0d0f15;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 10px 0 16px;
+    color: #cdd3e0;
+  }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt{
+    display:flex; align-items:flex-start; gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14.5px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .opt:hover{ border-color: #3a4257; background: #20263300; }
+  .opt input{ margin-top: 3px; accent-color: var(--amber); }
+  .qcard.correct{ border-color: var(--mint-dim); background: linear-gradient(180deg, #16241c 0%, var(--bg-card) 60px); }
+  .qcard.incorrect{ border-color: var(--coral-dim); background: linear-gradient(180deg, #241a18 0%, var(--bg-card) 60px); }
+  .opt.mark-correct{ border-color: var(--mint); background: #16281f; }
+  .opt.mark-wrong{ border-color: var(--coral); background: #2a1a17; }
+  .feedback{
+    display:none;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    font-size: 14px; color: var(--ink-dim);
+  }
+  .feedback .verdict{
+    font-family: var(--mono); font-weight:700; font-size: 13px;
+    display:inline-block; margin-bottom: 6px;
+  }
+  .qcard.correct .feedback .verdict{ color: var(--mint); }
+  .qcard.incorrect .feedback .verdict{ color: var(--coral); }
+  .qcard.graded .feedback{ display:block; }
+  .qcard.graded .opt{ pointer-events: none; }
+
+  /* ---------- submit / summary ---------- */
+  .grade-bar{
+    display:flex; justify-content:center; margin: 32px 0 8px;
+  }
+  #gradeBtn{
+    font-family: var(--mono); font-size: 14px; font-weight:700;
+    color: #10131a; background: var(--amber);
+    border:none; padding: 13px 28px; border-radius: 8px;
+    cursor:pointer;
+    box-shadow: 0 0 0 1px var(--amber-dim);
+  }
+  #gradeBtn:hover{ filter: brightness(1.07); }
+  #gradeBtn:disabled{ opacity:.5; cursor:not-allowed; }
+  .summary{
+    display:none;
+    text-align:center; font-family: var(--mono);
+    color: var(--ink-dim); font-size: 13px; margin-top: 10px;
+  }
+
+  /* ---------- debug / impl problem cards ---------- */
+  .dcard, .icard{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+  .dcard .dtag{
+    font-family: var(--mono); font-size: 12px; color: var(--coral); margin-bottom: 10px;
+  }
+  .icard .itag{
+    font-family: var(--mono); font-size: 12px; color: var(--mint); margin-bottom: 10px;
+  }
+  .dcard p.desc, .icard p.desc{ margin: 0 0 14px; color: var(--ink-dim); font-size: 14.5px; }
+  .icard p.cond{ margin: 0 0 14px; font-size: 14px; color: var(--ink); }
+  .icard p.cond code{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+    color: var(--amber);
+  }
+  .linehl{ background:#472a2455; border-left: 2px solid var(--coral); display:block; margin: 0 -16px; padding: 0 16px 0 14px; }
+  details.reveal{
+    margin-top: 14px;
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+  }
+  details.reveal summary{
+    cursor:pointer;
+    font-family: var(--mono); font-size: 13px; color: var(--amber);
+    list-style: none;
+  }
+  details.reveal summary::-webkit-details-marker{ display:none; }
+  details.reveal summary::before{ content: "▸ "; }
+  details.reveal[open] summary::before{ content: "▾ "; }
+  details.reveal .answer{
+    margin-top: 12px; font-size: 14.5px; color: var(--ink);
+  }
+  details.reveal .answer code, details.reveal .answer pre{
+    font-family: var(--mono); background:#0d0f15; padding: 2px 6px; border-radius:4px; font-size: 13px;
+  }
+  details.reveal .answer pre{
+    display:block; padding: 14px 16px; overflow-x:auto;
+    color: #cdd3e0; line-height: 1.55;
+  }
+  details.reveal .hint-note{
+    margin-top: 10px; font-size: 13.5px; color: var(--ink-dim);
+  }
+
+  footer{
+    max-width: 760px; margin: 40px auto 0; padding: 24px;
+    color: var(--ink-dim); font-size: 13px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* ---------- run example (week3) ---------- */
+  .runlabel{
+    font-family: var(--mono); font-size: 12.5px; color: var(--mint);
+    margin: 16px 0 6px;
+  }
+  pre.run{
+    background:#0d0f15;
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--mint);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x:auto;
+    margin: 0 0 6px;
+    color:#cdd3e0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre.run .in{ color: var(--amber); font-weight: 700; }
+  .icard p.score{
+    margin: 14px 0 0; font-size: 13.5px; color: var(--ink-dim);
+    border-top: 1px dashed var(--line); padding-top: 12px;
+  }
+  .icard p.score b{ color: var(--ink); }
+
+  .navback{ margin: 18px 0 0; font-size: 13.5px; }
+  .navback a{ font-family: var(--mono); color: var(--ink-dim); text-decoration: none; }
+  .navback a:hover{ color: var(--amber); }
+  .qcard .qnum{
+    font-family: var(--mono); font-size: 12px; color: var(--amber);
+    letter-spacing: .06em; margin: 0 0 6px;
+  }
+  .qcard .prompt code, .qcard .opt code{ font-family: var(--mono); font-size: 13px; color: var(--amber); }
+  .opt span{ flex: 1; }
+  .feedback .exp{ margin-top: 8px; line-height: 1.6; }
+  .feedback .exp code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  .icard .caps{ margin: 0 0 6px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-dim); }
+  .block-note{ font-size: 13.5px; color: var(--ink-dim); margin: -6px 0 18px; }
+  .block-note code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  .dl{ margin: 0 0 12px; padding-left: 18px; }
+  .dl li{ margin: 0 0 6px; font-size: 14px; }
+  .dl li code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  table.access{ width:100%; border-collapse: collapse; margin: 0 0 14px; font-size: 13.5px; }
+  table.access th, table.access td{ border:1px solid var(--line); padding:6px 10px; text-align:left; }
+  table.access th{ background: var(--bg-raise); color: var(--ink-dim); font-weight:500; }
+  .icard div.cond{ margin: 0 0 14px; font-size: 14px; color: var(--ink); }
+  .icard div.cond code{ font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+
+  /* ===== 개정판 추가: .ai-rule / .design / .tspec / .bugtag / .review ===== */
+  .ai-rule{
+    background: var(--bg-card); border:1px solid var(--line);
+    border-radius:10px; padding: 22px;
+  }
+  .ai-rule .oneline{
+    margin: 0 0 16px; padding: 13px 16px; font-size: 15.5px;
+    background: rgba(242,184,75,.07); border-left: 3px solid var(--amber);
+    border-radius: 0 6px 6px 0;
+  }
+  .ai-rule .oneline b{ color: var(--amber); }
+  .ai-rule table{ width:100%; border-collapse: collapse; font-size: 13.5px; margin: 0 0 12px; }
+  .ai-rule th, .ai-rule td{ border:1px solid var(--line); padding: 7px 10px; text-align:left; vertical-align:top; }
+  .ai-rule th{ background: var(--bg-raise); color: var(--ink-dim); font-weight:500; }
+  .ai-rule .caps{ margin: 16px 0 6px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-dim); }
+  .ai-rule pre{
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+    background:#0d0f15; border:1px solid var(--line); border-radius:8px;
+    padding: 12px 14px; overflow-x:auto; margin: 6px 0 10px; color:#cdd3e0;
+  }
+  .ai-rule p.tail{ margin: 12px 0 0; font-size: 13.5px; color: var(--ink-dim); }
+
+  .design{
+    background: var(--bg-raise); border:1px solid var(--line);
+    border-left: 3px solid var(--amber-dim); border-radius: 8px;
+    padding: 14px 16px 4px; margin: 0 0 16px;
+  }
+  .design .dl li{ font-size: 13.8px; }
+
+  .tspec{
+    margin: 16px 0 6px; padding: 14px 16px;
+    border: 1px dashed var(--line); border-radius: 8px;
+    background: rgba(127,216,166,.03);
+  }
+  .tspec table{ width:100%; border-collapse: collapse; font-size: 13.3px; margin: 8px 0 0; }
+  .tspec th, .tspec td{ border:1px dashed var(--line); padding: 6px 9px; text-align:left; vertical-align:top; }
+  .tspec th{ color: var(--ink-dim); font-weight:500; font-size: 12.5px; }
+  .tspec td:first-child{ width: 24px; text-align:center; color: var(--amber); font-family: var(--mono); }
+  .tspec em{ color: var(--ink-dim); font-style: normal; }
+  .tspec .dl li{ font-size: 13.5px; margin: 0; }
+
+  .bugtag{
+    display:inline-block; margin-left: 8px; vertical-align: 1px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .02em;
+    color: var(--coral); background: rgba(232,131,110,.10);
+    border: 1px solid var(--coral-dim); border-radius: 100px; padding: 2px 9px;
+  }
+
+  .review{
+    background: var(--bg-card); border:1px solid var(--line);
+    border-radius: 10px; padding: 20px 22px; margin-top: 18px;
+  }
+  .review .caps{ margin: 0; font-family: var(--mono); font-size: 12.5px; color: var(--amber); }
+  .review ul{ list-style:none; margin: 12px 0 0; padding: 0; }
+  .review li{ position: relative; padding-left: 24px; margin: 0 0 9px; font-size: 14px; }
+  .review li::before{ content:"A1"; position: absolute; left: 0; top: 0; color: var(--amber); font-family: var(--mono); }
+  .review p.guide{ margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed var(--line);
+    font-size: 13.5px; color: var(--ink-dim); }
+
+  /* 10주차 — 진단 기록표 / 카드 내 표 */
+  table.rec{ width:100%; border-collapse:collapse; margin:14px 0 10px; font-size:13.3px; table-layout:fixed; }
+  .dcard table, .tcard table{ width:100%; border-collapse:collapse; margin:12px 0 10px; font-size:13.3px; }
+  table.rec th, table.rec td, .dcard table th, .dcard table td,
+  .tcard table th, .tcard table td{ border:1px solid var(--line); padding:7px 9px;
+    text-align:left; vertical-align:top; word-break:break-word; }
+  table.rec th, .dcard table th, .tcard table th{ background:var(--bg-raise); color:var(--ink-dim);
+    font-weight:500; font-size:12.5px; }
+  table.rec td:first-child{ width:46px; text-align:center; color:var(--amber); font-family:var(--mono); }
+  table.rec tbody tr{ height:36px; }
+  table.rec th:nth-child(1){ width:46px; }
+  table.rec th:nth-child(3){ width:28%; }
+  table.rec th:nth-child(4){ width:26%; }
+  table.rec th:nth-child(5){ width:24%; }
+
+  /* 10주차 — 코드 카드 */
+  pre{ max-width:100%; overflow-x:auto; }
+  .codecard{ background:var(--bg-raise); border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; margin:16px 0 20px; }
+  .codecard .cap{ margin:0 0 4px; font-family:var(--mono); font-size:12.5px; color:var(--amber); }
+  .codecard .desc{ margin:0 0 10px; font-size:13px; color:var(--ink-dim); }
+  .codecard pre{ margin:0; padding:0; background:transparent; font-size:12.8px; line-height:1.62;
+    white-space:pre; }
+  .dcard pre, .tcard pre, details.sol pre{ margin:10px 0 0; padding:12px 14px; background:var(--bg-raise);
+    border:1px solid var(--line); border-radius:8px; font-size:12.8px; line-height:1.6; white-space:pre; }
+
+  /* ---------- 10주차 신규 클래스 ---------- */
+  .qcard .qn{ display:inline; font-family:var(--mono); font-size:13px; color:var(--amber);
+    margin:0 4px 0 0; }
+  .qcard .qtext{ margin:0 0 14px; font-size:15.5px; line-height:1.65; }
+  .opts{ display:flex; flex-direction:column; gap:8px; }
+  .opt{ display:grid; grid-template-columns:24px minmax(0,1fr); align-items:start; width:100%; text-align:left;
+    background:transparent; color:var(--ink); font:inherit; font-size:14.5px; line-height:1.6;
+    cursor:pointer; user-select:none; }
+  .opt:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .opt .k{ font-family:var(--mono); color:var(--amber); font-size:13px; }
+  .opt .t{ min-width:0; white-space:normal; word-break:keep-all; overflow-wrap:anywhere; }
+  .opt:hover{ background:#202633; border-color:#3a4257; }
+  .opt.mark-correct{ border-color:var(--mint); background:#16281f; }
+  .opt.mark-wrong{ border-color:var(--coral); background:#2a1a17; }
+  .opt.mark-correct .k{ color:var(--mint); }
+  .opt.mark-wrong .k{ color:var(--coral); }
+  .feedback{ margin:12px 0 0; font-size:13.5px; }
+  .feedback.ok{ color:var(--mint); }
+  .feedback.no{ color:var(--coral); }
+  details.sol{ margin-top:14px; border-top:1px dashed var(--line); padding-top:12px; }
+  details.sol summary{ cursor:pointer; font-size:13.5px; color:var(--ink-dim); font-family:var(--mono); }
+  details.sol summary:hover{ color:var(--amber); }
+  details.sol p{ margin:10px 0 0; font-size:14px; line-height:1.65; }
+  .dcard .dn{ font-family:var(--mono); font-size:12px; color:var(--coral); margin:0 0 6px; }
+  .dcard .dtitle, .tcard .ttitle{ margin:0 0 12px; font-size:16.5px; font-weight:700; color:var(--ink); }
+  .tcard{ background:var(--bg-card); border:1px solid var(--line); border-radius:10px;
+    padding:22px; margin-bottom:16px; }
+  .tcard .ttitle{ color:var(--mint); }
+  .dcard p, .tcard p{ font-size:14.5px; line-height:1.7; margin:0 0 10px; }
+  .block p.lead, .lead{ color:var(--ink-dim); font-size:14px; line-height:1.7; margin:0 0 16px; }
+  .guide{ color:var(--ink-dim); font-size:13px; margin:10px 0 0; }
+  pre{ font-family:var(--mono); color:#cdd3e0; }
+</style>
+
+<style>
+  .md-card{ background:var(--bg-card); border:1px solid var(--line); border-radius:12px; padding:20px 22px; margin:0 0 16px; }
+  .md-card .md-tag{ font-family:var(--mono); font-size:12px; color:var(--amber); margin:0 0 6px; letter-spacing:.04em; }
+  .md-card h3{ margin:0 0 12px; font-size:17px; }
+  .md-body p{ margin:0 0 10px; font-size:14.5px; }
+  .md-body ul,.md-body ol{ margin:0 0 12px; padding-left:22px; font-size:14.5px; }
+  .md-body li{ margin:0 0 5px; }
+  .md-body pre{ white-space:pre-wrap; overflow-wrap:anywhere; background:#0d1017; border:1px solid var(--line); border-radius:8px; padding:14px 16px; overflow-x:auto; font-family:var(--mono); font-size:12.5px; line-height:1.55; color:#cfd6e4; }
+  .md-body code{ font-family:var(--mono); font-size:12.5px; color:var(--amber); }
+  .md-body pre code{ color:inherit; }
+  .md-body table{ width:100%; border-collapse:collapse; margin:0 0 14px; font-size:13.5px; }
+  .md-body th,.md-body td{ border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+  .md-body th{ background:#202634; color:var(--ink); font-weight:600; }
+  .md-body blockquote{ margin:0 0 12px; padding:8px 14px; border-left:3px solid var(--amber-dim); color:var(--ink-dim); font-size:14px; }
+  .md-body h4{ margin:16px 0 8px; font-size:15px; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <p class="eyebrow-line">// C++ How to Program &nbsp;·&nbsp; 12장 12.5~12.6 · 13장 1~14쪽 &nbsp;·&nbsp; 11주차</p>
+  <h1>추상 클래스와 스트림 — 설계하고 돌려 보기</h1>
+  <p>추상 클래스와 순수 가상 함수(12.5~12.6), 그리고 스트림 입출력의 첫 부분(13.2~13.4.1)을
+  01 이론 → 02 진단 → 03 실습 순서로 확인합니다.</p>
+  <p><b>02 진단은 오류를 찾는 문제가 아닙니다.</b> 제공된 코드를 그대로 실행해 기준선을 만들고, 한 줄씩 바꿔
+  증상을 <b>직접 만들어</b> 기록합니다. <b>03 실습</b>은 턴제 전투 게임 하나를 3단계로 키우는 설계 문제입니다.</p>
+  <p class="navback"><a href="../">← 전체 주차 목록으로</a></p>
+</header>
+
+<main>
+  <section class="block" id="ai-block">
+    <div class="block-head"><span class="idx">AI</span><h2>AI 사용 규칙 — 과제를 시작하기 전에</h2></div>
+    <div class="ai-rule">
+      <p class="oneline"><b>AI를 썼는지로 채점하지 않습니다. 스스로 확인하세요 — 내가 설명할 수 있는 코드인가?</b></p>
+      <table>
+        <thead><tr><th>구역</th><th>AI 사용</th><th>조건</th></tr></thead>
+        <tbody>
+          <tr><td>개념 학습·예습·복습<br>(01 이론 확인 문제 포함)</td><td><b>자유</b></td><td>답을 그대로 옮기지 말고, 물어본 것은 <b>내 말로 3줄 요약</b>해 노트에 남깁니다.</td></tr>
+          <tr><td>설계 카드<br>(수업 중, 종이)</td><td><b>금지</b></td><td>손으로, 혼자. 설계를 대신 해 주게 하면 이 과제의 목적이 사라집니다.</td></tr>
+          <tr><td>실습 코드<br>(03 실습)</td><td><b>조건부</b></td><td>사용 공개 + 구두 설명. 두 조건을 지키면 자유롭게 쓸 수 있습니다.</td></tr>
+          <tr><td>시험·퀴즈·구두 확인</td><td><b>전면 금지</b></td><td>대면·종이. 전자기기 사용 불가.</td></tr>
+        </tbody>
+      </table>
+      <p class="caps">제출물</p>
+      <ul class="dl">
+        <li><b>설계 카드 표</b> — 단계 1의 네 칸을 채운 표</li>
+        <li><b>확장 시험 기록</b> — 네 번째 유닛을 추가할 때 루프를 고친 줄 수</li>
+        <li><b>실행 화면</b> — 입력과 출력(단계 3)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="th-block">
+    <div class="block-head"><span class="idx">01</span><h2>이론 확인 문제 — 4지선다 16문항</h2></div>
+    <p class="lead">보기를 누르면 바로 정답 여부가 표시됩니다. 점수는 매기지 않습니다 — 틀린 문항의 해설을 읽고 넘어가세요.</p>
+    <div class="qlist">
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q1.</span> 다음 중 추상 클래스(abstract class)에 대한 설명으로 옳은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">객체를 만들 수 있지만 가상 함수는 하나도 가질 수 없다.</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">객체를 만들 목적이 없는 클래스이며, 보통 기반 클래스로 사용한다.</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">모든 멤버 함수가 순수 가상 함수여야만 추상 클래스가 된다.</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 클래스를 만들 수 없도록 봉인된 클래스다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p>추상 클래스는 그 자체로는 너무 일반적이어서 객체를 만들지 않을 목적으로 쓰고, 파생 클래스가 빠진 부분을 채우게 합니다. 순수 가상 함수를 <b>하나 이상</b> 가지면 추상 클래스가 되므로 ③은 틀렸고, 파생 클래스는 얼마든지 만들 수 있으므로 ④도 틀렸습니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q2.</span> 다음 중 순수 가상 함수의 선언으로 옳은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>virtual void draw() const = 0 { }</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>virtual void draw() const = nullptr;</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>virtual void draw() const = 0;</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>pure virtual void draw() const;</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p>선언 끝에 <code>= 0</code>을 붙이며, 이 <code>0</code>을 순수 지정자(pure specifier)라고 합니다. ①처럼 본문을 함께 두면 순수 지정자를 쓸 수 없고, ②는 문법이 아니며, ④의 <code>pure virtual</code>은 C++에 없는 표기입니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qtext"><span class="qn">Q3.</span> 추상 클래스의 객체를 만들 수 없는 이유로 가장 알맞은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">생성자가 자동으로 만들어지지 않기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">크기가 0으로 계산되기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">소멸자를 가질 수 없기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">순수 가상 함수의 구현이 없어, 호출할 대상이 없는 불완전한 객체가 되기 때문</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+    <p>순수 가상 함수는 구현을 제공하지 않습니다. 그런 함수를 가진 객체를 만들면 호출할 본문이 없으므로, 언어가 객체 생성 자체를 막습니다. 생성자·소멸자는 추상 클래스에도 정상적으로 존재합니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q4.</span> 가상 함수와 순수 가상 함수의 차이를 가장 정확하게 설명한 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">가상 함수는 구현을 가지며 재정의가 선택이지만, 순수 가상 함수는 구현이 없고 구체 파생 클래스가 반드시 재정의해야 한다.</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">가상 함수는 재정의할 수 없고, 순수 가상 함수만 재정의할 수 있다.</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">둘 다 구현이 없으며, 차이는 접근 지정자뿐이다.</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">가상 함수는 실행 시간에, 순수 가상 함수는 컴파일 시간에 호출된다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p>차이는 구현의 유무와 재정의의 강제성입니다. 순수 가상을 재정의하지 않은 파생 클래스는 그대로 추상 클래스로 남습니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q5.</span> 기반 클래스의 순수 가상 함수 <code>earnings()</code>를 재정의하지 않은 파생 클래스에 대한 설명으로 옳은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">기반의 <code>earnings()</code>가 자동으로 호출된다.</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">컴파일은 되지만 실행하면 예외가 발생한다.</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">그 파생 클래스도 추상 클래스가 되어 객체를 만들 수 없다.</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">0을 반환하는 기본 구현이 자동으로 만들어진다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p>순수 가상은 구현이 없으므로 자동으로 무언가가 호출될 수 없습니다. 재정의가 없는 파생 클래스 역시 추상 클래스가 되고, 그 객체를 만들려는 순간 컴파일 오류가 납니다(진단 1).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q6.</span> 추상 기반 클래스 <code>Employee</code>에 대해 할 수 있는 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>Employee e("Kim");</code>처럼 객체를 직접 만든다.</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>Employee* p = new SalariedEmployee("Kim", 3000);</code>처럼 파생 객체를 가리키게 한다.</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>new Employee("Kim")</code>으로 동적 할당한다.</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>Employee</code>를 값으로 배열에 담는다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p>추상 클래스의 객체는 만들 수 없지만(①③④), 그 클래스의 포인터와 참조는 선언할 수 있고 파생 객체를 가리켜 다형적으로 다룰 수 있습니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qtext"><span class="qn">Q7.</span> 교재 12.6의 <code>Employee</code>에서 <code>earnings()</code>를 순수 가상으로 선언한 이유로 가장 알맞은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">모든 직원의 급여가 항상 0이기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">파생 클래스가 급여를 계산하지 못하게 막으려고</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">가상 함수로 선언하면 실행 속도가 느려지기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">직원 종류마다 계산 방법이 달라, 기반 클래스에 둘 만한 기본 구현이 없기 때문</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+    <p>월급제·수수료제·기본급+수수료제는 계산식이 서로 다릅니다. 기반에 둘 근거가 없으니 <code>= 0</code>으로 두고, 각 파생 클래스가 자기 식을 제공하게 합니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q8.</span> 같은 <code>Employee</code> 계층에서 <code>print()</code>는 가상 함수이지만 순수 가상은 아닙니다. 그 이유로 가장 알맞은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">이름을 출력하는 공통 부분이 있어 기반에 기본 구현을 둘 수 있기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>print</code>는 다형적으로 호출되지 않기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">순수 가상으로 만들면 컴파일 오류가 나기 때문</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 클래스가 <code>print</code>를 재정의하지 못하게 하려고</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p>이름·주민번호처럼 모든 직원에 공통인 출력이 있어 기반에 기본 구현을 두고, 파생 클래스는 필요하면 자기 몫을 덧붙입니다. 재정의는 선택이므로 <code>virtual</code>만 붙입니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q9.</span> <code>SalariedEmployee::print()</code>에서 <code>Employee::print();</code>를 먼저 호출하는 이유는?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">기반 클래스의 소멸자를 부르기 위해</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">기반 클래스에 있는 공통 출력을 그대로 재사용하기 위해</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">가상 함수 호출을 막기 위해</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">파생 클래스의 <code>print</code>를 숨기기 위해</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p>이름 출력 같은 공통 부분을 기반에 맡기고 파생은 자기 몫만 덧붙입니다. 같은 코드를 복사하지 않으므로 공통 형식이 바뀌어도 한 곳만 고치면 됩니다(진단 3에서 이 줄을 빼면 이름이 사라집니다).</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q10.</span> 다음 코드의 실행 결과로 옳은 것은?</p>
+  <pre>class Employee {
+public:
+    virtual void print() const { cout &lt;&lt; "Employee "; }
+    virtual ~Employee() {}
+};
+class SalariedEmployee : public Employee {
+public:
+    void print() const override { cout &lt;&lt; "Salaried "; }
+};
+
+int main() {
+    SalariedEmployee kim;
+    Employee* p = &amp;kim;
+    Employee&amp; r = kim;
+    kim.print(); p-&gt;print(); r.print();
+}</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>Employee Employee Employee</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>Salaried Salaried Employee</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>Salaried Salaried Salaried</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">컴파일 오류가 난다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p>객체 이름(<code>kim.print()</code>)은 정적 바인딩이지만 대상이 <code>SalariedEmployee</code>이므로 파생 버전이 불리고, 기반 포인터와 기반 참조는 동적 바인딩으로 역시 파생 버전이 불립니다. 세 호출이 모두 <code>Salaried</code>입니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q11.</span> <code>BasePlusCommissionEmployee::earnings()</code>를 <code>baseSalary_ + CommissionEmployee::earnings()</code>로 구현하는 것의 의미로 가장 알맞은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">기반 클래스의 계산을 재사용하고 자기 몫만 더한다.</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">기반 클래스의 계산을 무시하고 새로 계산한다.</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">가상 함수 호출을 두 번 일으킨다.</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">순수 가상 함수를 재정의하지 않은 것이다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p><code>CommissionEmployee::earnings()</code>를 범위 지정으로 직접 부르면 가상 호출이 아니라 그 클래스의 구현이 불립니다. 자기 계산을 처음부터 다시 쓰지 않고 기반 것을 재사용하는 것이 핵심입니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qtext"><span class="qn">Q12.</span> <code>Employee</code>가 추상 클래스일 때, 컴파일 오류가 나는 문장은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>Employee* p = new SalariedEmployee("Kim", 3000);</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>std::vector&lt;Employee*&gt; staff;</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>void f(const Employee&amp; e);</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>Employee e("Kim");</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+    <p>추상 클래스의 객체는 만들 수 없습니다. 포인터·참조·포인터를 담는 컨테이너는 모두 문제없습니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q13.</span> 스트림에 대한 설명으로 옳은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t">스트림은 파일에만 쓰이는 개념이다.</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t">스트림은 바이트의 나열이며, 입력은 장치에서 주기억장치로 바이트가 흘러 들어오는 것이다.</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">입력 스트림과 출력 스트림은 같은 객체다.</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">스트림은 반드시 한 번에 전체 데이터를 옮긴다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p>C++의 입출력은 스트림, 곧 바이트의 나열로 이루어집니다. 입력은 장치 → 주기억장치, 출력은 주기억장치 → 장치입니다. 입출력 전송에는 기계적 동작이 따르는 경우가 많아 처리 시간보다 오래 걸리기 일쑤입니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q14.</span> 세 헤더 파일의 역할을 바르게 짝지은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>&lt;iostream&gt;</code> — 파일 입출력, <code>&lt;fstream&gt;</code> — 표준 입출력</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>&lt;iomanip&gt;</code> — 표준 스트림 객체 정의, <code>&lt;iostream&gt;</code> — 서식 조작자</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>&lt;iostream&gt;</code> — 기본 스트림 서비스와 <code>cin</code>·<code>cout</code>·<code>cerr</code>·<code>clog</code>, <code>&lt;iomanip&gt;</code> — <code>setw</code>·<code>setprecision</code> 같은 매개변수 있는 조작자, <code>&lt;fstream&gt;</code> — 사용자 파일 처리</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>&lt;fstream&gt;</code> — 조작자, <code>&lt;iomanip&gt;</code> — 파일 처리</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+    <p><code>&lt;iostream&gt;</code>은 모든 스트림 입출력의 기본 서비스와 표준 스트림 객체를, <code>&lt;iomanip&gt;</code>은 인자를 받는 조작자를, <code>&lt;fstream&gt;</code>은 사용자가 직접 파일을 처리하는 서비스를 담당합니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q15.</span> <code>cerr</code>와 <code>clog</code>에 대한 설명으로 옳은 것은?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>cerr</code>는 버퍼를 쓰지 않아 출력이 곧바로 나타나고, <code>clog</code>는 버퍼가 차거나 flush될 때까지 붙잡아 둔다.</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>cerr</code>는 버퍼를 쓰고 <code>clog</code>는 쓰지 않는다.</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">둘 다 표준 출력 장치에 연결되어 있다.</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">둘 다 파일에만 쓸 수 있다.</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+    <p>둘 다 표준 오류 장치에 연결되지만 <code>cerr</code>는 버퍼를 쓰지 않고, <code>clog</code>는 버퍼를 씁니다. 다만 둘 다 표준 오류에 붙어 있어서, 리다이렉션 없이는 두 스트림이 화면에서 구분되지 않습니다.</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q16.</span> 다음 코드의 출력으로 옳은 것은?</p>
+  <pre>const char* word = "again";
+cout &lt;&lt; word &lt;&lt; endl;
+cout.put(65);</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>again</code> 다음 줄에 <code>65</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>again</code> 다음 줄에 <code>A</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">주소값 두 개</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>againA</code> 한 줄</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+    <p><code>&lt;&lt;</code> 연산자는 <code>char *</code>를 널 문자로 끝나는 C 스타일 문자열로 출력하므로 내용 <code>again</code>이 나옵니다. <code>put</code>은 문자 하나를 출력하며, 인자로 ASCII 값을 받을 수 있으므로 <code>65</code>는 <code>A</code>가 됩니다. 주소를 보려면 <code>static_cast&lt;const void *&gt;(word)</code>처럼 캐스팅해야 합니다.</p>
+  </details>
+</div>
+    </div>
+  </section>
+
+  <section class="block" id="dg-block">
+    <div class="block-head"><span class="idx">02</span><h2>진단 — 제공 코드에 변이 만들기</h2></div>
+<div class="md-body"><p>학생에게 제공하는 코드는 두 벌입니다. <b>먼저 원래 코드를 그대로 실행해 기준선 출력을 적게</b> 하고, 문항별로 한 곳만 바꿔 관찰합니다. 문항 1~5·7·8은 실험형(4칸), <b>문항 6만 설명형</b>입니다.</p>
+<p>기록표(실험형 7문항)</p>
+<table><thead><tr><th>문항</th><th>바꾼 줄</th><th>증상</th><th>원인</th><th>수정</th></tr></thead><tbody><tr><td>1</td><td></td><td></td><td></td><td></td></tr><tr><td>2</td><td></td><td></td><td></td><td></td></tr><tr><td>3</td><td></td><td></td><td></td><td></td></tr><tr><td>4</td><td></td><td></td><td></td><td></td></tr><tr><td>5</td><td></td><td></td><td></td><td></td></tr><tr><td>7</td><td></td><td></td><td></td><td></td></tr><tr><td>8</td><td></td><td></td><td></td><td></td></tr></tbody></table>
+<p>문항 6은 아래 두 질문에 글로 답합니다(실행 없음).</p></div><div class="md-card">
+  <p class="md-tag">제공 코드</p>
+  <h3>제공 코드 A — Employee 계층 (파일 <code>employee_diag.cpp</code>)</h3>
+  <div class="md-body"><pre>// 진단 제공 코드 A ─ 정상 동작하는 기준선 (12.5~12.6)
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+class Employee {
+public:
+    Employee(const string&amp; name) : name_(name) {}
+    virtual ~Employee() { cout &lt;&lt; "[dtor] Employee(" &lt;&lt; name_ &lt;&lt; ")" &lt;&lt; endl; }
+
+    const string&amp; getName() const { return name_; }
+
+    virtual double earnings() const = 0;          // 순수 가상 ─ Employee는 답을 모른다
+    virtual void print() const { cout &lt;&lt; "name: " &lt;&lt; name_ &lt;&lt; ", "; }
+
+private:
+    string name_;
+};
+
+class SalariedEmployee : public Employee {
+public:
+    SalariedEmployee(const string&amp; name, double salary)
+        : Employee(name), salary_(salary) {}
+    ~SalariedEmployee() { cout &lt;&lt; "[dtor] Salaried(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; endl; }
+
+    double earnings() const override { return salary_; }
+    void print() const override { Employee::print(); cout &lt;&lt; "salary: " &lt;&lt; earnings() &lt;&lt; endl; }
+
+private:
+    double salary_;
+};
+
+class CommissionEmployee : public Employee {
+public:
+    CommissionEmployee(const string&amp; name, double rate, double sales)
+        : Employee(name), rate_(rate), sales_(sales) {}
+    ~CommissionEmployee() { cout &lt;&lt; "[dtor] Commission(" &lt;&lt; getName() &lt;&lt; ")" &lt;&lt; endl; }
+
+    double earnings() const override { return rate_ * sales_; }
+    void print() const override { Employee::print(); cout &lt;&lt; "commission: " &lt;&lt; earnings() &lt;&lt; endl; }
+
+private:
+    double rate_, sales_;
+};
+
+int main() {
+    vector&lt;Employee*&gt; staff;
+    staff.push_back(new SalariedEmployee("Kim", 3000));
+    staff.push_back(new CommissionEmployee("Lee", 0.25, 8000));
+
+    double total = 0;
+    for (Employee* e : staff) { e-&gt;print(); total += e-&gt;earnings(); }
+    cout &lt;&lt; "total: " &lt;&lt; total &lt;&lt; endl;
+
+    for (Employee* e : staff) delete e;
+}</pre>
+<p><b>기준선 출력</b> (이 7줄을 먼저 적게 합니다)</p>
+<pre>name: Kim, salary: 3000
+name: Lee, commission: 2000
+total: 5000
+[dtor] Salaried(Kim)
+[dtor] Employee(Kim)
+[dtor] Commission(Lee)
+[dtor] Employee(Lee)</pre></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 1 — <code>SalariedEmployee</code>의 <code>earnings()</code> 재정의를 지운다</h3>
+  <div class="md-body"><p>한 줄 <code>double earnings() const override { return salary_; }</code>를 삭제.</p>
+<ul>
+<li><b>증상</b> 컴파일 오류. g++ <code>error: invalid new-expression of abstract class type 'SalariedEmployee'</code> / VS <code>C2259: 'SalariedEmployee' 추상 클래스를 인스턴스화할 수 없습니다</code></li>
+<li><b>원인</b> 순수 가상을 재정의하지 않아 <code>SalariedEmployee</code>도 추상 클래스가 되었다.</li>
+<li><b>수정</b> 삭제한 줄을 되돌린다.</li>
+</ul></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 2 — <code>= 0</code>을 기본 구현으로 바꾸고, <code>CommissionEmployee</code>의 재정의를 지운다</h3>
+  <div class="md-body"><p><code>virtual double earnings() const = 0;</code> → <code>virtual double earnings() const { return 0.0; }</code> <code>CommissionEmployee</code>의 <code>double earnings() const override { return rate_ * sales_; }</code> 삭제.</p>
+<ul>
+<li><b>증상</b> 컴파일·실행 모두 성공. Lee의 commission이 2000 → <b>0</b>, total이 5000 → <b>3000</b>.</li>
+<li><b>원인</b> 기반에 구현이 생겨 추상이 아니게 되었고, 재정의가 없으면 조용히 0.0이 호출된다. 순수 가상이었다면 진단 1처럼 컴파일이 막아 주었을 오류다.</li>
+<li><b>수정</b> <code>= 0</code>으로 되돌리고 재정의를 복원한다.</li>
+</ul></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 3 — <code>SalariedEmployee::print()</code>에서 <code>Employee::print();</code>를 지운다</h3>
+  <div class="md-body"><ul>
+<li><b>증상</b> Kim 줄이 <code>name: Kim, salary: 3000</code> → <b><code>salary: 3000</code></b> 으로 바뀐다. 나머지 줄은 그대로다.</li>
+<li><b>원인</b> 공통 출력(이름)을 기반에 맡기지 않아 파생에서 빠졌다.</li>
+<li><b>수정</b> 호출을 복원한다.</li>
+</ul></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 4 — 기반 소멸자의 <code>virtual</code>을 지운다</h3>
+  <div class="md-body"><p><code>virtual ~Employee()</code> → <code>~Employee()</code></p>
+<ul>
+<li><b>증상</b> 컴파일은 되고 g++에서 경고만 나온다(<code>-Wdelete-non-virtual-dtor</code>). VS는 기본 경고 수준에서 경고 없이 지나갈 수 있다. 실행하면 <code>[dtor] Salaried</code>·<code>[dtor] Commission</code> 로그가 <b>사라지고</b> <code>[dtor] Employee</code> 두 줄만 남는다.</li>
+<li><b>원인</b> 기반 포인터로 <code>delete</code>하면 정적 타입(Employee) 기준으로 소멸자가 선택되어 파생 소멸자가 호출되지 않는다.</li>
+<li><b>수정</b> <code>virtual</code>을 되돌린다.</li>
+</ul></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 5 — <code>vector&lt;Employee*&gt;</code>를 <code>vector&lt;Employee&gt;</code>로 바꾼다</h3>
+  <div class="md-body"><p><code>vector&lt;Employee*&gt; staff;</code> → <code>vector&lt;Employee&gt; staff;</code>, <code>push_back(new SalariedEmployee(...))</code> → <code>push_back(SalariedEmployee(...))</code>, 순회를 <code>for (Employee&amp; e : staff)</code>로 수정.</p>
+<ul>
+<li><b>증상</b> 컴파일 오류. g++ <code>error: invalid new-expression of abstract class type 'Employee'</code> (allocator 내부) / VS <code>C2259</code></li>
+<li><b>원인</b> 값을 담으려면 <code>Employee</code> 객체를 직접 만들어야 하는데, 추상 클래스는 객체를 만들 수 없다.</li>
+<li><b>수정</b> 포인터를 담고, 마지막에 <code>delete</code>한다.</li>
+</ul></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">제공 코드</p>
+  <h3>제공 코드 B — get/put 루프 (파일 <code>stream_diag.cpp</code>)</h3>
+  <div class="md-body"><pre>// 진단 제공 코드 B ─ 표준 입력을 get으로 한 글자씩 받아 put으로 출력 (13.4.1, 그림 13.4)
+#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    int ch;                                        // EOF를 구분하려면 char가 아니라 int
+    while ((ch = cin.get()) != EOF)
+        cout.put(static_cast&lt;char&gt;(ch));
+    cout &lt;&lt; endl &lt;&lt; "[end]" &lt;&lt; endl;
+}</pre>
+<p><b>기준선</b> — <code>abcdef⏎</code>를 입력하면 <code>abcdef</code>가 되돌아 나오고 다음 줄에 <code>[end]</code>.</p></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 6 — <code>int ch</code>를 <code>char ch</code>로 바꾼다 (설명형)</h3>
+  <div class="md-body"><p>아래 코드는 <code>cin.get()</code>의 반환값을 <code>char</code>에 담았습니다. <b>실행해 보지 말고</b> 왜 이렇게 쓰면 안 되는지 서술하십시오. 질문은 두 개입니다.</p>
+<pre>char ch;                                        // 원래 코드는 int ch;
+while ((ch = cin.get()) != EOF)
+    cout.put(ch);</pre>
+<ol>
+<li><code>cin.get()</code>은 무엇을 돌려주며, 파일 끝에서는 어떤 값이 오는가?</li>
+<li><code>char</code>로 받으면 그 값이 왜 <code>EOF</code>와 구분되지 않는가?</li>
+</ol>
+<p><b>모범 답안</b> <code>cin.get()</code>은 <code>int</code>를 돌려줍니다. 문자가 오면 그 문자의 코드값(<code>'a'</code> → 97), 파일 끝이면 <b>EOF(-1)</b> 입니다. 그런데 1바이트가 가질 수 있는 값은 <b>0~255</b>이므로 255(0xFF)라는 바이트도 정상 입력으로 들어올 수 있습니다. <code>char</code>는 256가지 값만 담으므로 255와 -1(EOF)을 구분하지 못합니다. 이 환경(<code>char</code>가 signed)에서는 255를 담는 순간 -1이 되어 <b>정상 문자를 파일 끝으로 착각</b>하고, <code>char</code>가 unsigned인 환경에서는 반대로 EOF가 255가 되어 <b>입력을 다 읽고도 반복이 끝나지 않습니다</b>. 그래서 <code>int</code>로 받고, 출력할 때만 <code>static_cast&lt;char&gt;</code>로 좁힙니다.</p>
+<blockquote>이 문항은 실험 대신 추론으로 냅니다. 0xFF 바이트를 키보드로 넣을 수 없어 파일을 만들어야 하고(기존 안), 파일 입출력을 아직 배우지 않은 상태라 부적절합니다. 증상은 위 모범 답안에만 남깁니다.</blockquote></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 7 — <code>cin.get()</code>을 <code>cin &gt;&gt; c</code>로 바꾼다</h3>
+  <div class="md-body"><p>제공 코드 B의 반복을 이렇게 바꿉니다.</p>
+<pre>char c;
+while (cin &gt;&gt; c)                                // get() 대신 &gt;&gt; 로 받는다
+    cout.put(c);</pre>
+<p>입력: <code>a b</code> 다음 줄에 <code>c  d</code> (공백 3개 + 줄바꿈 1개)</p>
+<ul>
+<li><b>증상</b> 원래 코드는 <code>a b</code> / <code>c  d</code>가 <b>공백과 줄바꿈까지 그대로</b> 돌아온다. 바꾼 코드는 <b><code>abcd</code></b> 가 나온다(실측). 공백과 줄바꿈이 모두 사라진다.</li>
+<li><b>원인</b> <code>&gt;&gt;</code> 연산자는 <b>공백 문자를 건너뛰고</b> 다음 항목을 읽는다(13.4). <code>get()</code>은 공백을 포함한 모든 문자를 그대로 준다(13.4.1). 같은 입력이라도 어느 쪽으로 읽느냐에 따라 결과가 달라진다.</li>
+<li><b>수정</b> <code>cin.get()</code>으로 되돌린다.</li>
+<li><b>덧</b> 화면에서 바로 확인되므로 리다이렉션이 필요 없다.</li>
+</ul></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">진단 문항</p>
+  <h3>진단 8 — <code>cout.put(static_cast&lt;char&gt;(ch))</code>를 <code>cout &lt;&lt; ch</code>로 바꾼다</h3>
+  <div class="md-body"><ul>
+<li><b>증상</b> <code>abc⏎</code>를 입력하면 <code>abc</code>가 아니라 <b><code>97989910</code></b> 이 출력된다(개행까지 숫자로 나온다).</li>
+<li><b>원인</b> <code>ch</code>가 <code>int</code>이므로 <code>&lt;&lt;</code>가 문자 대신 정수를 출력한다.</li>
+<li><b>수정</b> <code>put(static_cast&lt;char&gt;(ch))</code>로 되돌린다.</li>
+</ul></div>
+</div>
+  </section>
+
+  <section class="block" id="ts-block">
+    <div class="block-head"><span class="idx">03</span><h2>실습 — 문제 1개, 3단계</h2></div>
+<div class="md-body"><p><b>문제</b> — 턴제 전투 게임을 만든다. 유닛의 종류마다 공격 계산과 표시가 다른데, 전투를 진행하는 쪽은 <b>유닛이 몇 종류인지 몰라도</b> 돌아가야 한다. 계층은 학생이 직접 설계한다.</p>
+<p>세 단계는 하나의 프로그램을 키워 갑니다. 정답 계층은 하나가 아니며, 아래 모범 코드는 한 가지 예입니다.</p>
+<table><thead><tr><th>단계</th><th>무엇을 하나</th><th>이 단계에서 배우는 것</th></tr></thead><tbody><tr><td>1</td><td>설계 카드를 채우고, 예시 <code>Unit</code>에 <code>virtual</code>·<code>= 0</code>을 직접 정해 붙인 뒤 파생 두 개를 만든다</td><td>무엇을 기반에 두고 무엇을 순수 가상으로 둘지</td></tr><tr><td>2</td><td>예시 전투 루프를 기반 포인터만으로 돌린다</td><td>분기 없는 다형 처리, 확장할 때 기존 코드가 안 바뀌는 설계</td></tr><tr><td>3</td><td>표준 입력으로 유닛을 구성하고 리포트를 낸다</td><td><code>&gt;&gt;</code>의 동작, <code>ostream&amp;</code>로 출력 대상 일반화, <code>cerr</code> 경고</td></tr></tbody></table></div><div class="md-card">
+  <p class="md-tag">실습</p>
+  <h3>단계 1 — 설계 카드 → 추상 기반 클래스와 파생</h3>
+  <div class="md-body"><p><b>설계 카드</b> (이 표를 먼저 채워서 제출)</p>
+<table><thead><tr><th>칸</th><th>적을 내용</th></tr></thead><tbody><tr><td>기반 <code>Unit</code>에 둘 것</td><td>모든 유닛이 공통으로 가지는 상태·동작</td></tr><tr><td>가상 함수로 둘 것</td><td>필요하면 가상 함수로 선언한다. 어떤 함수를 왜 그렇게 두는지 적는다</td></tr><tr><td>파생마다 다르게 만들 것</td><td>자기만의 데이터와 계산</td></tr><tr><td><code>main</code>이 알아야 할 것</td><td>게임 진행에 꼭 필요한 최소한</td></tr></tbody></table>
+<p><b>예시 기반 클래스 — <code>Unit</code></b> (<code>src/task1/Unit.h</code>, 시작 파일)</p>
+<p>멤버 구성만 정해 둔 예시입니다. <code>virtual</code>, <code>= 0</code>, 소멸자 처리는 <b>일부러 비워 두었습니다.</b> 유닛 설계는 자유이므로, 바꾸고 싶은 부분이 있으면 바꿔도 됩니다.</p>
+<pre>#pragma once
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+class Unit {
+public:
+    Unit(const std::string&amp; name, int hp);
+    ~Unit();
+
+    const std::string&amp; name() const;
+    int hp() const;
+    bool alive() const;
+    void takeDamage(int damage);          // 체력은 0 아래로 내려가지 않는다
+
+    int attack();
+    const char* type() const;
+    void print(std::ostream&amp; out) const;
+
+private:
+    std::string name_;
+    int hp_;
+    int maxHp_;
+};</pre>
+<p><b>요구 사항</b></p>
+<ol>
+<li><code>Unit</code>은 <b>객체를 직접 만들 수 없는 클래스</b>여야 한다. 이를 위해 위 <code>Unit</code>의 각 함수에 <code>virtual</code>, <code>= 0</code>을 붙일지, 소멸자를 어떻게 선언할지는 <b>직접 결정한다.</b> 파생 클래스에서 재정의하는 함수에는 <code>override</code>를 붙인다. 필요하면 멤버를 추가해도 된다. 결정한 이유는 설계 카드에 적는다</li>
+<li>결정의 결과로 다음이 성립해야 한다</li>
+</ol>
+<ul>
+<li><code>attack()</code>과 <code>type()</code>은 유닛마다 다르게 동작한다</li>
+<li><code>print(std::ostream&amp;)</code>의 공통 형식(종류·이름·체력)은 <code>Unit</code>이 출력하고, 파생은 자기 몫만 덧붙인다</li>
+<li>기반 포인터로 <code>delete</code>해도 파생 클래스의 소멸자까지 호출된다(소멸자에서 로그를 출력할지는 자유. 아래 예시 출력의 <code>[dtor]</code> 줄은 모범 답안이 로그를 넣은 경우다)</li>
+</ul>
+<ol>
+<li>파생 클래스를 <b>최소 두 개</b> 만든다(예: <code>Warrior</code>는 공격력이 그대로 피해, <code>Archer</code>는 공격력 + 민첩/2)</li>
+<li><code>vector&lt;Unit*&gt;</code>에 담아 <b>기반 포인터만으로</b> <code>print</code>와 <code>attack</code>을 호출한다</li>
+</ol>
+<p><b>모범 코드 — 기반 클래스</b> (<code>src/task1/solution/Unit.h</code>, 결정을 마친 형태)</p>
+<pre>class Unit {
+public:
+    Unit(const std::string&amp; name, int hp);
+    virtual ~Unit();
+
+    const std::string&amp; name() const;
+    int hp() const;
+    bool alive() const;
+    void takeDamage(int damage);
+
+    virtual int attack() = 0;                     // 순수 가상
+    virtual const char* type() const = 0;         // 순수 가상
+    virtual void print(std::ostream&amp; out) const;  // 가상 ─ 공통 형식은 기반이 맡는다
+
+private:
+    std::string name_;
+    int hp_;
+    int maxHp_;
+};</pre>
+<p><b>모범 코드 — 파생 하나</b> (<code>src/task1/solution/Warrior.cpp</code>)</p>
+<pre>int Warrior::attack() { return power_; }        // 공격력이 그대로 피해
+
+void Warrior::print(std::ostream&amp; out) const {
+    Unit::print(out);                           // 공통 부분은 기반에 맡긴다
+    out &lt;&lt; " power " &lt;&lt; power_;
+}</pre>
+<p><b>예시 출력</b> (실측)</p>
+<pre>Warrior Conan (hp 100/100) power 12 -&gt; attack 12
+Archer Legolas (hp 80/80) power 11 agility 6 -&gt; attack 14
+[dtor] Warrior(Conan)
+[dtor] Unit(Conan)
+[dtor] Archer(Legolas)
+[dtor] Unit(Legolas)</pre>
+<p><b>확인 포인트</b></p>
+<ol>
+<li><code>Unit u("Nobody", 10);</code>의 주석을 풀면 어떤 오류가 나는가 — <code>cannot declare variable 'u' to be of abstract type 'Unit'</code></li>
+<li>두 파생의 <code>attack()</code>이 각각 몇인가 — 12와 14. 같은 호출이라도 결과가 다르면 설계가 맞다</li>
+<li><code>print</code>를 순수 가상으로 두지 않은 이유를 자기 말로 설명할 수 있는가 — 공통 형식(이름·체력)이 있어 기본 구현을 둘 수 있다</li>
+<li><code>~Unit()</code>이 <code>virtual</code>이어야 하는 이유 — <code>delete</code>를 기반 포인터로 하기 때문</li>
+</ol></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">실습</p>
+  <h3>단계 2 — 전투 루프를 기반 포인터만으로</h3>
+  <div class="md-body"><p><b>예시 메인 루프</b> (<code>src/task2/main.cpp</code>)</p>
+<p>전투 진행 부분은 예시로 제공합니다. 그대로 써도 되고, 바꾸고 싶으면 바꿔도 됩니다.</p>
+<pre>// main.cpp ─ 예시 전투 루프. 그대로 써도 되고, 바꾸고 싶으면 바꿔도 된다.
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include "Unit.h"                               // 직접 만든 유닛 클래스 헤더
+
+// 살아 있는 첫 유닛을 돌려준다. 없으면 nullptr
+static Unit* firstAlive(std::vector&lt;Unit*&gt;&amp; team) {
+    for (Unit* u : team)
+        if (u-&gt;alive()) return u;
+    return nullptr;
+}
+
+// attackers의 살아 있는 유닛이 차례로 defenders의 살아 있는 첫 유닛을 공격한다
+static void attackPhase(std::vector&lt;Unit*&gt;&amp; attackers, std::vector&lt;Unit*&gt;&amp; defenders,
+                        const char* label, std::ostream&amp; out) {
+    for (Unit* a : attackers) {
+        if (!a-&gt;alive()) continue;
+        Unit* target = firstAlive(defenders);
+        if (target == nullptr) return;
+
+        int damage = a-&gt;attack();               // 가상 함수 ─ 유닛마다 다른 계산
+        target-&gt;takeDamage(damage);
+        out &lt;&lt; label &lt;&lt; " " &lt;&lt; a-&gt;name() &lt;&lt; " -&gt; " &lt;&lt; target-&gt;name()
+            &lt;&lt; " : " &lt;&lt; damage &lt;&lt; " damage, " &lt;&lt; target-&gt;name()
+            &lt;&lt; " hp " &lt;&lt; target-&gt;hp();
+        if (!target-&gt;alive()) out &lt;&lt; " (defeated)";
+        out &lt;&lt; '\n';
+    }
+}
+
+int main() {
+    std::vector&lt;Unit*&gt; heroes  { new Warrior("Conan", 100, 12), new Archer("Legolas", 80, 11, 6) };
+    std::vector&lt;Unit*&gt; enemies { new Mage("Saruman", 70, 18, 20), new Warrior("Orc", 60, 9) };
+
+    for (int round = 1; round &lt;= 3; ++round) {  // 한 라운드 = 아군 전원 공격 → 적군 전원 공격
+        std::cout &lt;&lt; "--- round " &lt;&lt; round &lt;&lt; " ---\n";
+        attackPhase(heroes, enemies, "hero", std::cout);
+        attackPhase(enemies, heroes, "enemy", std::cout);
+    }
+
+    std::cout &lt;&lt; "--- result ---\n";
+    for (Unit* u : heroes)  { u-&gt;print(std::cout); std::cout &lt;&lt; '\n'; }
+    for (Unit* u : enemies) { u-&gt;print(std::cout); std::cout &lt;&lt; '\n'; }
+
+    for (Unit* u : heroes)  delete u;
+    for (Unit* u : enemies) delete u;
+}</pre>
+<p><b>요구 사항</b></p>
+<ol>
+<li>파생을 하나 더 만든다(예: <code>Mage</code> — 마나가 있으면 두 배로 때리고 마나를 10 소모)</li>
+<li>두 팀을 <code>std::vector&lt;Unit*&gt;</code>로 만들고 3라운드 동안 공격을 주고받는다. 위 예시 루프를 그대로 써도 된다</li>
+<li>루프를 바꾸더라도 루프 안에서 <b><code>type()</code>이나 <code>dynamic_cast</code>로 분기하지 않는다</b> — <code>attack()</code> 하나만 부르고 나머지는 가상 함수가 알아서 한다</li>
+<li>결과 출력은 <code>print(std::cout)</code>으로, 각 유닛의 종류·이름·남은 체력이 나오게</li>
+</ol>
+<p>예시 출력은 모범 답안(위 예시 루프와 유닛) 기준이며, 유닛 규칙에 따라 숫자는 달라도 됩니다.</p>
+<p><b>예시 출력</b> (실측, 3라운드, 소멸자 로그는 생략)</p>
+<pre>--- round 1 ---
+hero Conan -&gt; Saruman : 12 damage, Saruman hp 58
+hero Legolas -&gt; Saruman : 14 damage, Saruman hp 44
+enemy Saruman -&gt; Conan : 36 damage, Conan hp 64
+enemy Orc -&gt; Conan : 9 damage, Conan hp 55
+--- round 2 ---
+...
+--- round 3 ---
+hero Conan -&gt; Saruman : 12 damage, Saruman hp 6
+hero Legolas -&gt; Saruman : 14 damage, Saruman hp 0 (defeated)
+enemy Orc -&gt; Conan : 9 damage, Conan hp 1
+--- result ---
+Warrior Conan (hp 1/100) power 12
+Archer Legolas (hp 80/80) power 11 agility 6
+Mage Saruman (hp 0/70) power 18 mana 0
+Warrior Orc (hp 60/60) power 9</pre>
+<p><b>확인 포인트</b></p>
+<ol>
+<li><b>확장 시험</b> — 네 번째 유닛 종류(예: <code>Healer</code>나 <code>Thief</code>)를 추가할 때 루프를 몇 줄 고쳤는가. <b>0줄이면 설계가 맞다.</b> 새 클래스와 팀 구성 줄만 추가되고 루프는 그대로여야 한다</li>
+<li>루프에 <code>if (type가 Mage면 ...)</code> 같은 분기가 들어갔다면 왜 안 되는가 — 유닛이 늘 때마다 루프를 고쳐야 하므로 개방-폐쇄 원칙에 어긋난다</li>
+<li><code>Mage</code>의 공격력이 마나가 바닥난 뒤 36에서 18로 줄어드는 이유 — <code>attack()</code>이 마나를 소모하는 상태를 가진 함수라서(가상 함수는 상태도 가질 수 있다). 예시 출력에서 Saruman은 1·2라운드에 36씩 공격하고 3라운드에는 공격하기 전에 쓰러지지만, 전투가 더 이어졌다면 18로 공격한다</li>
+</ol></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">실습</p>
+  <h3>단계 3 — 표준 입력으로 유닛 구성 + 리포트</h3>
+  <div class="md-body"><p><b>요구 사항</b></p>
+<ol>
+<li><code>void printReport(const std::vector&lt;Unit*&gt;&amp; team, std::ostream&amp; out)</code> — 구분선은 <code>out.put('-')</code>, 각 유닛은 <code>print(out)</code></li>
+<li><b>표준 입력</b>에서 아군을 구성한다. 한 줄에 한 명, 공백으로 구분.</li>
+</ol>
+<pre>   W Conan 100 12                  ← 이름, 체력, 공격력
+   A Legolas 80 11 6               ← 이름, 체력, 공격력, 민첩
+   M Gandalf 50 15 20              ← 이름, 체력, 공격력, 마나</pre>
+<p>위 형식은 모범 답안 기준이다. 유닛을 다르게 설계했다면 자기 유닛에 맞게 필드를 바꿔도 된다(첫 항목은 종류). 입력 끝은 <b>Ctrl+Z</b>(Visual Studio 콘솔). <code>while (cin &gt;&gt; kind)</code> 형태</p>
+<ol>
+<li>체력이 0 이하인 줄은 등록하지 않고 <code>std::cerr</code>로 경고한 뒤 다음 줄로 넘어간다</li>
+<li>알 수 없는 종류는 <code>std::cerr</code>로 알리고 읽기를 멈춘다</li>
+<li>전투 후 <code>printReport(heroes, std::cout)</code>과 <code>printReport(enemies, std::cout)</code>로 결과를 출력</li>
+</ol>
+<p><b>모범 코드 — 입력 루프와 리포트</b> (<code>src/task3/main.cpp</code>)</p>
+<pre>void printReport(const std::vector&lt;Unit*&gt;&amp; team, std::ostream&amp; out) {
+    for (int i = 0; i &lt; 44; ++i) out.put('-');       // 구분선은 put 으로 한 글자씩
+    out &lt;&lt; '\n';
+    for (const Unit* u : team) {
+        u-&gt;print(out);                               // 가상 함수가 파생 버전을 고른다
+        out &lt;&lt; '\n';
+    }
+}
+
+while (std::cin &gt;&gt; kind) {
+    std::string name; int hp = 0;
+    if (kind == "W") {
+        int power;
+        std::cin &gt;&gt; name &gt;&gt; hp &gt;&gt; power;
+        if (hp &lt;= 0) { std::cerr &lt;&lt; "[warn] " &lt;&lt; name &lt;&lt; ": hp must be positive, skipped\n"; continue; }
+        heroes.push_back(new Warrior(name, hp, power));
+    }
+    ...
+}</pre>
+<p><b>예시 출력</b> (실측, 소멸자 로그는 생략). 입력 <code>W Conan 100 12</code> / <code>A Legolas 80 11 6</code> / <code>M Gandalf 50 15 20</code> / <code>W Weak 0 5</code></p>
+<pre>[warn] Weak: hp must be positive, skipped
+--- round 1 ---
+hero Conan -&gt; Saruman : 12 damage, Saruman hp 58
+hero Legolas -&gt; Saruman : 14 damage, Saruman hp 44
+hero Gandalf -&gt; Saruman : 30 damage, Saruman hp 14
+enemy Saruman -&gt; Conan : 36 damage, Conan hp 64
+enemy Orc -&gt; Conan : 9 damage, Conan hp 55
+--- round 2 ---
+...
+--- heroes ---
+--------------------------------------------
+Warrior Conan (hp 46/100) power 12
+Archer Legolas (hp 80/80) power 11 agility 6
+Mage Gandalf (hp 50/50) power 15 mana 0
+--- enemies ---
+--------------------------------------------
+Mage Saruman (hp 0/70) power 18 mana 10
+Warrior Orc (hp 0/60) power 9</pre>
+<p><b>확인 포인트</b></p>
+<ol>
+<li>입력을 <code>W  Conan   100   12</code>처럼 공백을 여러 개 넣어도 같은 결과인 이유 — <code>&gt;&gt;</code>가 공백을 건너뛰고 항목 단위로 읽는다(진단 7과 같은 성질)</li>
+<li><code>printReport(heroes, std::cout)</code>을 <code>std::cerr</code>로 바꾸면 어디로 가는가 — 화면에 그대로 나오지만 표준 오류 스트림으로 나간다. <code>ostream&amp;</code> 하나로 출력 대상을 바꿀 수 있다</li>
+<li>경고가 전투 로그보다 <b>먼저</b> 보이는 이유 — 경고는 입력 중 <code>cerr</code>로, 전투 로그는 그 뒤 <code>cout</code>으로 나가기 때문</li>
+<li><code>while (cin &gt;&gt; kind)</code>가 언제 끝나는가 — 입력이 끝나면 <code>&gt;&gt;</code>가 스트림을 실패 상태로 만들고 그 값이 조건식에서 거짓이 된다</li>
+</ol>
+<p><b>제출물</b> — 설계 카드 표, 확장 시험에서 루프를 고친 줄 수, 실행 화면(입력과 출력).</p></div>
+</div>
+  </section>
+
+  <footer>
+    <p class="navback"><a href="../">← 전체 주차 목록으로</a></p>
+  </footer>
+</main>
+
+<script>
+document.querySelectorAll('.qcard').forEach(function(card){
+  var ans = card.getAttribute('data-ans');
+  var fb = card.querySelector('.feedback');
+  card.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (card.classList.contains('done')) return;
+      var k = btn.getAttribute('data-k');
+      if (k === ans) {
+        btn.classList.add('mark-correct');
+        fb.textContent = '정답입니다.';
+        fb.className = 'feedback ok';
+        fb.hidden = false;
+        card.classList.add('done');
+      } else {
+        btn.classList.add('mark-wrong');
+        fb.textContent = '다시 — 해설을 보고 판단해 보세요.';
+        fb.className = 'feedback no';
+        fb.hidden = false;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
