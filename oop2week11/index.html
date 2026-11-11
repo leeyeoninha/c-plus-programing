@@ -643,7 +643,7 @@ cout.put(65);</pre>
 
   <section class="block" id="dg-block">
     <div class="block-head"><span class="idx">02</span><h2>진단 — 제공 코드에 변이 만들기</h2></div>
-<div class="md-body"><p>학생에게 제공하는 코드는 두 벌입니다. <b>먼저 원래 코드를 그대로 실행해 기준선 출력을 적게</b> 하고, 문항별로 한 곳만 바꿔 관찰합니다. 문항 1~5·7·8은 실험형(4칸), <b>문항 6만 설명형</b>입니다.</p>
+<div class="md-body"><p>제공된 코드는 두 벌입니다. <b>먼저 원래 코드를 그대로 실행해 기준선 출력을 적으세요.</b> 그다음 문항별로 한 곳만 바꿔 관찰합니다. 문항 1~5·7·8은 실험형(4칸), <b>문항 6만 설명형</b>입니다.</p>
 <p>기록표(실험형 7문항)</p>
 <table><thead><tr><th>문항</th><th>바꾼 줄</th><th>증상</th><th>원인</th><th>수정</th></tr></thead><tbody><tr><td>1</td><td></td><td></td><td></td><td></td></tr><tr><td>2</td><td></td><td></td><td></td><td></td></tr><tr><td>3</td><td></td><td></td><td></td><td></td></tr><tr><td>4</td><td></td><td></td><td></td><td></td></tr><tr><td>5</td><td></td><td></td><td></td><td></td></tr><tr><td>7</td><td></td><td></td><td></td><td></td></tr><tr><td>8</td><td></td><td></td><td></td><td></td></tr></tbody></table>
 <p>문항 6은 아래 두 질문에 글로 답합니다(실행 없음).</p></div><div class="md-card">
@@ -706,7 +706,7 @@ int main() {
 
     for (Employee* e : staff) delete e;
 }</pre>
-<p><b>기준선 출력</b> (이 7줄을 먼저 적게 합니다)</p>
+<p><b>기준선 출력</b> (이 7줄을 먼저 적으세요)</p>
 <pre>name: Kim, salary: 3000
 name: Lee, commission: 2000
 total: 5000
@@ -718,51 +718,47 @@ total: 5000
 <div class="md-card">
   <p class="md-tag">진단 문항</p>
   <h3>진단 1 — <code>SalariedEmployee</code>의 <code>earnings()</code> 재정의를 지운다</h3>
-  <div class="md-body"><p>한 줄 <code>double earnings() const override { return salary_; }</code>를 삭제.</p>
-<ul>
+  <div class="md-body"><p>한 줄 <code>double earnings() const override { return salary_; }</code>를 삭제.</p><details class="sol"><summary>증상·원인·수정 보기</summary><ul>
 <li><b>증상</b> 컴파일 오류. g++ <code>error: invalid new-expression of abstract class type 'SalariedEmployee'</code> / VS <code>C2259: 'SalariedEmployee' 추상 클래스를 인스턴스화할 수 없습니다</code></li>
 <li><b>원인</b> 순수 가상을 재정의하지 않아 <code>SalariedEmployee</code>도 추상 클래스가 되었다.</li>
 <li><b>수정</b> 삭제한 줄을 되돌린다.</li>
-</ul></div>
+</ul></details></div>
 </div>
 <div class="md-card">
   <p class="md-tag">진단 문항</p>
   <h3>진단 2 — <code>= 0</code>을 기본 구현으로 바꾸고, <code>CommissionEmployee</code>의 재정의를 지운다</h3>
-  <div class="md-body"><p><code>virtual double earnings() const = 0;</code> → <code>virtual double earnings() const { return 0.0; }</code> <code>CommissionEmployee</code>의 <code>double earnings() const override { return rate_ * sales_; }</code> 삭제.</p>
-<ul>
+  <div class="md-body"><p><code>virtual double earnings() const = 0;</code> → <code>virtual double earnings() const { return 0.0; }</code> <code>CommissionEmployee</code>의 <code>double earnings() const override { return rate_ * sales_; }</code> 삭제.</p><details class="sol"><summary>증상·원인·수정 보기</summary><ul>
 <li><b>증상</b> 컴파일·실행 모두 성공. Lee의 commission이 2000 → <b>0</b>, total이 5000 → <b>3000</b>.</li>
 <li><b>원인</b> 기반에 구현이 생겨 추상이 아니게 되었고, 재정의가 없으면 조용히 0.0이 호출된다. 순수 가상이었다면 진단 1처럼 컴파일이 막아 주었을 오류다.</li>
 <li><b>수정</b> <code>= 0</code>으로 되돌리고 재정의를 복원한다.</li>
-</ul></div>
+</ul></details></div>
 </div>
 <div class="md-card">
   <p class="md-tag">진단 문항</p>
   <h3>진단 3 — <code>SalariedEmployee::print()</code>에서 <code>Employee::print();</code>를 지운다</h3>
-  <div class="md-body"><ul>
+  <div class="md-body"><details class="sol"><summary>증상·원인·수정 보기</summary><ul>
 <li><b>증상</b> Kim 줄이 <code>name: Kim, salary: 3000</code> → <b><code>salary: 3000</code></b> 으로 바뀐다. 나머지 줄은 그대로다.</li>
 <li><b>원인</b> 공통 출력(이름)을 기반에 맡기지 않아 파생에서 빠졌다.</li>
 <li><b>수정</b> 호출을 복원한다.</li>
-</ul></div>
+</ul></details></div>
 </div>
 <div class="md-card">
   <p class="md-tag">진단 문항</p>
   <h3>진단 4 — 기반 소멸자의 <code>virtual</code>을 지운다</h3>
-  <div class="md-body"><p><code>virtual ~Employee()</code> → <code>~Employee()</code></p>
-<ul>
-<li><b>증상</b> 컴파일은 되고 g++에서 경고만 나온다(<code>-Wdelete-non-virtual-dtor</code>). VS는 기본 경고 수준에서 경고 없이 지나갈 수 있다. 실행하면 <code>[dtor] Salaried</code>·<code>[dtor] Commission</code> 로그가 <b>사라지고</b> <code>[dtor] Employee</code> 두 줄만 남는다.</li>
-<li><b>원인</b> 기반 포인터로 <code>delete</code>하면 정적 타입(Employee) 기준으로 소멸자가 선택되어 파생 소멸자가 호출되지 않는다.</li>
+  <div class="md-body"><p><code>virtual ~Employee()</code> → <code>~Employee()</code></p><details class="sol"><summary>증상·원인·수정 보기</summary><ul>
+<li><b>증상</b> 기본 옵션으로 컴파일하면 경고 없이 빌드된다. <code>-Wall</code>을 주면 <code>deleting object of abstract class type 'Employee' which has non-virtual destructor will cause undefined behavior</code> 경고가 나온다. 실행하면 <code>[dtor] Salaried</code>·<code>[dtor] Commission</code> 로그가 <b>사라지고</b> <code>[dtor] Employee</code> 두 줄만 남는다.</li>
+<li><b>원인</b> 기반 포인터로 <code>delete</code>하면 정적 타입(Employee) 기준으로 소멸자가 선택되어 파생 소멸자가 호출되지 않는다. 이 동작은 <b>정의되지 않은 동작(UB)</b> 이므로 "보통 위처럼 관찰된다"로 이해해야 하고, 컴파일러·표준 라이브러리에 따라 결과가 달라질 수 있다.</li>
 <li><b>수정</b> <code>virtual</code>을 되돌린다.</li>
-</ul></div>
+</ul></details></div>
 </div>
 <div class="md-card">
   <p class="md-tag">진단 문항</p>
   <h3>진단 5 — <code>vector&lt;Employee*&gt;</code>를 <code>vector&lt;Employee&gt;</code>로 바꾼다</h3>
-  <div class="md-body"><p><code>vector&lt;Employee*&gt; staff;</code> → <code>vector&lt;Employee&gt; staff;</code>, <code>push_back(new SalariedEmployee(...))</code> → <code>push_back(SalariedEmployee(...))</code>, 순회를 <code>for (Employee&amp; e : staff)</code>로 수정.</p>
-<ul>
+  <div class="md-body"><p><code>vector&lt;Employee*&gt; staff;</code> → <code>vector&lt;Employee&gt; staff;</code>, <code>push_back(new SalariedEmployee(...))</code> → <code>push_back(SalariedEmployee(...))</code>, 순회를 <code>for (Employee&amp; e : staff)</code>로 수정.</p><details class="sol"><summary>증상·원인·수정 보기</summary><ul>
 <li><b>증상</b> 컴파일 오류. g++ <code>error: invalid new-expression of abstract class type 'Employee'</code> (allocator 내부) / VS <code>C2259</code></li>
 <li><b>원인</b> 값을 담으려면 <code>Employee</code> 객체를 직접 만들어야 하는데, 추상 클래스는 객체를 만들 수 없다.</li>
 <li><b>수정</b> 포인터를 담고, 마지막에 <code>delete</code>한다.</li>
-</ul></div>
+</ul></details></div>
 </div>
 <div class="md-card">
   <p class="md-tag">제공 코드</p>
@@ -789,9 +785,7 @@ while ((ch = cin.get()) != EOF)
 <ol>
 <li><code>cin.get()</code>은 무엇을 돌려주며, 파일 끝에서는 어떤 값이 오는가?</li>
 <li><code>char</code>로 받으면 그 값이 왜 <code>EOF</code>와 구분되지 않는가?</li>
-</ol>
-<p><b>모범 답안</b> <code>cin.get()</code>은 <code>int</code>를 돌려줍니다. 문자가 오면 그 문자의 코드값(<code>'a'</code> → 97), 파일 끝이면 <b>EOF(-1)</b> 입니다. 그런데 1바이트가 가질 수 있는 값은 <b>0~255</b>이므로 255(0xFF)라는 바이트도 정상 입력으로 들어올 수 있습니다. <code>char</code>는 256가지 값만 담으므로 255와 -1(EOF)을 구분하지 못합니다. 이 환경(<code>char</code>가 signed)에서는 255를 담는 순간 -1이 되어 <b>정상 문자를 파일 끝으로 착각</b>하고, <code>char</code>가 unsigned인 환경에서는 반대로 EOF가 255가 되어 <b>입력을 다 읽고도 반복이 끝나지 않습니다</b>. 그래서 <code>int</code>로 받고, 출력할 때만 <code>static_cast&lt;char&gt;</code>로 좁힙니다.</p>
-<blockquote>이 문항은 실험 대신 추론으로 냅니다. 0xFF 바이트를 키보드로 넣을 수 없어 파일을 만들어야 하고(기존 안), 파일 입출력을 아직 배우지 않은 상태라 부적절합니다. 증상은 위 모범 답안에만 남깁니다.</blockquote></div>
+</ol><details class="sol"><summary>모범 답안 보기</summary><p><b>모범 답안</b> <code>cin.get()</code>은 <code>int</code>를 돌려줍니다. 문자가 오면 그 문자의 코드값(<code>'a'</code> → 97), 파일 끝이면 <b>EOF(-1)</b> 입니다. 그런데 1바이트가 가질 수 있는 값은 <b>0~255</b>이므로 255(0xFF)라는 바이트도 정상 입력으로 들어올 수 있습니다. <code>char</code>는 256가지 값만 담으므로 255와 -1(EOF)을 구분하지 못합니다. 이 환경(<code>char</code>가 signed)에서는 255를 담는 순간 -1이 되어 <b>정상 문자를 파일 끝으로 착각</b>하고, <code>char</code>가 unsigned인 환경에서는 반대로 EOF가 255가 되어 <b>입력을 다 읽고도 반복이 끝나지 않습니다</b>. 그래서 <code>int</code>로 받고, 출력할 때만 <code>static_cast&lt;char&gt;</code>로 좁힙니다.</p></details></div>
 </div>
 <div class="md-card">
   <p class="md-tag">진단 문항</p>
@@ -800,22 +794,22 @@ while ((ch = cin.get()) != EOF)
 <pre>char c;
 while (cin &gt;&gt; c)                                // get() 대신 &gt;&gt; 로 받는다
     cout.put(c);</pre>
-<p>입력: <code>a b</code> 다음 줄에 <code>c  d</code> (공백 3개 + 줄바꿈 1개)</p>
-<ul>
-<li><b>증상</b> 원래 코드는 <code>a b</code> / <code>c  d</code>가 <b>공백과 줄바꿈까지 그대로</b> 돌아온다. 바꾼 코드는 <b><code>abcd</code></b> 가 나온다(실측). 공백과 줄바꿈이 모두 사라진다.</li>
+<p>입력은 아래 두 줄입니다. 둘째 줄 <code>c</code>와 <code>d</code> 사이에는 공백이 두 칸 있습니다.</p>
+<pre>a b
+c  d</pre><details class="sol"><summary>증상·원인·수정 보기</summary><ul>
+<li><b>증상</b> 원래 코드는 <code>a b</code> / <code>c  d</code>가 <b>공백과 줄바꿈까지 그대로</b> 돌아온다. 바꾼 코드는 <b><code>abcd</code></b> 가 나온다. 공백과 줄바꿈이 모두 사라진다.</li>
 <li><b>원인</b> <code>&gt;&gt;</code> 연산자는 <b>공백 문자를 건너뛰고</b> 다음 항목을 읽는다(13.4). <code>get()</code>은 공백을 포함한 모든 문자를 그대로 준다(13.4.1). 같은 입력이라도 어느 쪽으로 읽느냐에 따라 결과가 달라진다.</li>
 <li><b>수정</b> <code>cin.get()</code>으로 되돌린다.</li>
-<li><b>덧</b> 화면에서 바로 확인되므로 리다이렉션이 필요 없다.</li>
-</ul></div>
+</ul></details></div>
 </div>
 <div class="md-card">
   <p class="md-tag">진단 문항</p>
   <h3>진단 8 — <code>cout.put(static_cast&lt;char&gt;(ch))</code>를 <code>cout &lt;&lt; ch</code>로 바꾼다</h3>
-  <div class="md-body"><ul>
+  <div class="md-body"><details class="sol"><summary>증상·원인·수정 보기</summary><ul>
 <li><b>증상</b> <code>abc⏎</code>를 입력하면 <code>abc</code>가 아니라 <b><code>97989910</code></b> 이 출력된다(개행까지 숫자로 나온다).</li>
 <li><b>원인</b> <code>ch</code>가 <code>int</code>이므로 <code>&lt;&lt;</code>가 문자 대신 정수를 출력한다.</li>
 <li><b>수정</b> <code>put(static_cast&lt;char&gt;(ch))</code>로 되돌린다.</li>
-</ul></div>
+</ul></details></div>
 </div>
   </section>
 
@@ -894,7 +888,7 @@ void Warrior::print(std::ostream&amp; out) const {
     Unit::print(out);                           // 공통 부분은 기반에 맡긴다
     out &lt;&lt; " power " &lt;&lt; power_;
 }</pre>
-<p><b>예시 출력</b> (실측)</p>
+<p><b>예시 출력</b></p>
 <pre>Warrior Conan (hp 100/100) power 12 -&gt; attack 12
 Archer Legolas (hp 80/80) power 11 agility 6 -&gt; attack 14
 [dtor] Warrior(Conan)
@@ -969,7 +963,7 @@ int main() {
 <li>결과 출력은 <code>print(std::cout)</code>으로, 각 유닛의 종류·이름·남은 체력이 나오게</li>
 </ol>
 <p>예시 출력은 모범 답안(위 예시 루프와 유닛) 기준이며, 유닛 규칙에 따라 숫자는 달라도 됩니다.</p>
-<p><b>예시 출력</b> (실측, 3라운드, 소멸자 로그는 생략)</p>
+<p><b>예시 출력</b> (3라운드, 소멸자 로그는 생략)</p>
 <pre>--- round 1 ---
 hero Conan -&gt; Saruman : 12 damage, Saruman hp 58
 hero Legolas -&gt; Saruman : 14 damage, Saruman hp 44
@@ -990,7 +984,7 @@ Warrior Orc (hp 60/60) power 9</pre>
 <ol>
 <li><b>확장 시험</b> — 네 번째 유닛 종류(예: <code>Healer</code>나 <code>Thief</code>)를 추가할 때 루프를 몇 줄 고쳤는가. <b>0줄이면 설계가 맞다.</b> 새 클래스와 팀 구성 줄만 추가되고 루프는 그대로여야 한다</li>
 <li>루프에 <code>if (type가 Mage면 ...)</code> 같은 분기가 들어갔다면 왜 안 되는가 — 유닛이 늘 때마다 루프를 고쳐야 하므로 개방-폐쇄 원칙에 어긋난다</li>
-<li><code>Mage</code>의 공격력이 마나가 바닥난 뒤 36에서 18로 줄어드는 이유 — <code>attack()</code>이 마나를 소모하는 상태를 가진 함수라서(가상 함수는 상태도 가질 수 있다). 예시 출력에서 Saruman은 1·2라운드에 36씩 공격하고 3라운드에는 공격하기 전에 쓰러지지만, 전투가 더 이어졌다면 18로 공격한다</li>
+<li><code>Mage</code>의 공격력이 마나가 바닥난 뒤 36에서 18로 줄어드는 이유 — <code>mana_</code>는 <code>Mage</code> 객체가 가진 상태이고, <code>attack()</code>은 그 상태를 바꾸는 함수라서 <code>const</code>가 아니다. 예시 출력에서 Saruman은 1·2라운드에 36씩 공격하고 3라운드에는 공격하기 전에 쓰러지지만, 전투가 더 이어졌다면 18로 공격한다</li>
 </ol></div>
 </div>
 <div class="md-card">
@@ -1030,7 +1024,7 @@ while (std::cin &gt;&gt; kind) {
     }
     ...
 }</pre>
-<p><b>예시 출력</b> (실측, 소멸자 로그는 생략). 입력 <code>W Conan 100 12</code> / <code>A Legolas 80 11 6</code> / <code>M Gandalf 50 15 20</code> / <code>W Weak 0 5</code></p>
+<p><b>예시 출력</b> (소멸자 로그는 생략). 입력 <code>W Conan 100 12</code> / <code>A Legolas 80 11 6</code> / <code>M Gandalf 50 15 20</code> / <code>W Weak 0 5</code></p>
 <pre>[warn] Weak: hp must be positive, skipped
 --- round 1 ---
 hero Conan -&gt; Saruman : 12 damage, Saruman hp 58
@@ -1050,8 +1044,10 @@ Mage Gandalf (hp 50/50) power 15 mana 0
 Mage Saruman (hp 0/70) power 18 mana 10
 Warrior Orc (hp 0/60) power 9</pre>
 <p><b>확인 포인트</b></p>
+<p>입력 예 (공백을 여러 칸 넣은 경우):</p>
+<pre>W   Conan    100    12</pre>
 <ol>
-<li>입력을 <code>W  Conan   100   12</code>처럼 공백을 여러 개 넣어도 같은 결과인 이유 — <code>&gt;&gt;</code>가 공백을 건너뛰고 항목 단위로 읽는다(진단 7과 같은 성질)</li>
+<li>위 입력이 원래 형식(<code>W Conan 100 12</code>)과 같은 결과를 내는 이유 — <code>&gt;&gt;</code>가 공백을 건너뛰고 항목 단위로 읽는다(진단 7과 같은 성질).</li>
 <li><code>printReport(heroes, std::cout)</code>을 <code>std::cerr</code>로 바꾸면 어디로 가는가 — 화면에 그대로 나오지만 표준 오류 스트림으로 나간다. <code>ostream&amp;</code> 하나로 출력 대상을 바꿀 수 있다</li>
 <li>경고가 전투 로그보다 <b>먼저</b> 보이는 이유 — 경고는 입력 중 <code>cerr</code>로, 전투 로그는 그 뒤 <code>cout</code>으로 나가기 때문</li>
 <li><code>while (cin &gt;&gt; kind)</code>가 언제 끝나는가 — 입력이 끝나면 <code>&gt;&gt;</code>가 스트림을 실패 상태로 만들고 그 값이 조건식에서 거짓이 된다</li>
