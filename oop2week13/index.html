@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>순차 파일 처리 — 쓰고, 읽고, 옮기고, 다시 쓰기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10131a; --bg-raise:#171b24; --bg-card:#1c212c; --line:#2a3040;
+    --ink:#e7e9ee; --ink-dim:#8b93a7; --amber:#f2b84b; --amber-dim:#7a611f;
+    --mint:#7fd8a6; --mint-dim:#234433; --coral:#e8836e; --coral-dim:#472a24;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; color:var(--ink); font-family:var(--sans); line-height:1.6; padding:0 0 96px;
+    background:radial-gradient(ellipse 900px 500px at 15% -10%, #1a2130 0%, transparent 60%), var(--bg); }
+  a{ color:var(--amber); }
+  header.hero{ max-width:760px; margin:0 auto; padding:56px 24px 40px; }
+  .eyebrow-line{ font-family:var(--mono); font-size:13px; color:var(--amber); margin:0 0 14px; }
+  header.hero h1{ font-size:clamp(28px,4vw,38px); line-height:1.25; margin:0 0 14px; font-weight:700; }
+  header.hero p{ color:var(--ink-dim); font-size:16px; max-width:58ch; margin:0 0 12px; }
+  .navback{ margin:18px 0 0; font-size:13.5px; }
+  .navback a{ font-family:var(--mono); color:var(--ink-dim); text-decoration:none; }
+  .navback a:hover{ color:var(--amber); }
+  main{ max-width:760px; margin:0 auto; padding:0 24px; }
+  section.block{ margin:48px 0; }
+  .block-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:22px;
+    padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .block-head .idx{ font-family:var(--mono); color:var(--amber); font-size:14px; }
+  .block-head h2{ font-size:20px; margin:0; font-weight:700; }
+  p.lead{ color:var(--ink-dim); font-size:14px; line-height:1.7; margin:0 0 16px; }
+
+  .qcard{ background:var(--bg-card); border:1px solid var(--line); border-radius:10px;
+    padding:22px 22px 20px; margin-bottom:16px; }
+  .qcard .qn{ display:inline; font-family:var(--mono); font-size:13px; color:var(--amber); margin:0 4px 0 0; }
+  .qcard .qtext{ margin:0 0 14px; font-size:15.5px; line-height:1.65; }
+  .qcard .qtext code, .opt code{ font-family:var(--mono); font-size:13px; color:var(--amber); }
+  .opts{ display:flex; flex-direction:column; gap:8px; }
+  .opt{ display:grid; grid-template-columns:24px minmax(0,1fr); align-items:start; width:100%;
+    text-align:left; background:transparent; color:var(--ink); font:inherit; font-size:14.5px;
+    line-height:1.6; cursor:pointer; user-select:none; border:1px solid var(--line);
+    border-radius:8px; padding:10px 12px; }
+  .opt:hover{ background:#202633; border-color:#3a4257; }
+  .opt:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+  .opt .k{ font-family:var(--mono); color:var(--amber); font-size:13px; }
+  .opt .t{ min-width:0; white-space:normal; word-break:keep-all; overflow-wrap:anywhere; }
+  .opt.mark-correct{ border-color:var(--mint); background:#16281f; }
+  .opt.mark-wrong{ border-color:var(--coral); background:#2a1a17; }
+  .opt.mark-correct .k{ color:var(--mint); }
+  .opt.mark-wrong .k{ color:var(--coral); }
+  .feedback{ margin:12px 0 0; font-size:13.5px; }
+  .feedback.ok{ color:var(--mint); }
+  .feedback.no{ color:var(--coral); }
+  details.sol{ margin-top:14px; border-top:1px dashed var(--line); padding-top:12px; }
+  details.sol summary{ cursor:pointer; font-size:13.5px; color:var(--ink-dim); font-family:var(--mono); }
+  details.sol summary:hover{ color:var(--amber); }
+  details.sol p{ margin:10px 0 0; font-size:14px; line-height:1.65; }
+  details.sol pre, .md-body pre{ font-family:var(--mono); font-size:12.8px; line-height:1.6;
+    background:#0d0f15; border:1px solid var(--line); border-radius:8px; padding:12px 14px;
+    white-space:pre-wrap; overflow-wrap:anywhere; overflow-x:auto; color:#cdd3e0; margin:10px 0 0; }
+
+  .md-card{ background:var(--bg-card); border:1px solid var(--line); border-radius:12px;
+    padding:20px 22px; margin:0 0 16px; }
+  .md-card .md-tag{ font-family:var(--mono); font-size:12px; color:var(--amber);
+    margin:0 0 6px; letter-spacing:.04em; }
+  .md-card h3{ margin:0 0 12px; font-size:17px; }
+  .md-body p{ margin:0 0 10px; font-size:14.5px; }
+  .md-body ul,.md-body ol{ margin:0 0 12px; padding-left:22px; font-size:14.5px; }
+  .md-body li{ margin:0 0 5px; }
+  .md-body code{ font-family:var(--mono); font-size:12.5px; color:var(--amber); }
+  .md-body table{ width:100%; border-collapse:collapse; margin:0 0 14px; font-size:13.5px; }
+  .md-body th,.md-body td{ border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+  .md-body th{ background:var(--bg-raise); color:var(--ink); font-weight:600; }
+  .md-body blockquote{ margin:0 0 12px; padding:8px 14px; border-left:3px solid var(--amber-dim);
+    color:var(--ink-dim); font-size:14px; }
+
+  .ai-rule{ background:var(--bg-card); border:1px solid var(--line); border-radius:10px; padding:22px; }
+  .ai-rule .oneline{ margin:0 0 16px; padding:13px 16px; font-size:15.5px;
+    background:rgba(242,184,75,.07); border-left:3px solid var(--amber); border-radius:0 6px 6px 0; }
+  .ai-rule .oneline b{ color:var(--amber); }
+  .ai-rule table{ width:100%; border-collapse:collapse; font-size:13.5px; margin:0 0 12px; }
+  .ai-rule th,.ai-rule td{ border:1px solid var(--line); padding:7px 10px; text-align:left; vertical-align:top; }
+  .ai-rule th{ background:var(--bg-raise); color:var(--ink-dim); font-weight:500; }
+  .ai-rule .caps{ margin:16px 0 6px; font-family:var(--mono); font-size:12.5px; color:var(--ink-dim); }
+  .ai-rule .dl{ margin:0; padding-left:18px; }
+  .ai-rule .dl li{ font-size:14px; margin:0 0 6px; }
+  footer{ max-width:760px; margin:40px auto 0; padding:24px; color:var(--ink-dim);
+    font-size:13px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <p class="eyebrow-line">// C++ How to Program &nbsp;·&nbsp; 14장 1~27쪽 &nbsp;·&nbsp; 13주차</p>
+  <h1>순차 파일 처리 — 쓰고, 읽고, 옮기고, 다시 쓰기</h1>
+  <p>14장 1~27쪽 — 파일과 스트림, 순차 파일 만들기와 읽기, 파일 열기 모드, 파일 위치 포인터(seekg·seekp·tellg·tellp), 순차 파일 갱신을 01 이론 → 02 토론·검증 → 03 실습 순서로 확인합니다.</p>
+  <p><b>02 토론·검증은 2인 1조로 진행합니다.</b> 한 사람이 코드를 한 곳만 바꾸고, 다른 사람이
+  <b>실행하기 전에 질문</b>합니다. 예측을 말하고 실행해 확인한 뒤, 원인을 둘이 합의해 기록합니다.
+  <b>03 실습</b>은 순차 파일 쓰기·읽기 → 신용 조회 확장 → 인하항공 예약 저장의 세 문제입니다.</p>
+  <p class="navback"><a href="../">← 전체 주차 목록으로</a></p>
+</header>
+
+<main>
+  <section class="block" id="ai-block">
+    <div class="block-head"><span class="idx">AI</span><h2>AI 사용 규칙 — 과제를 시작하기 전에</h2></div>
+    <div class="ai-rule">
+      <p class="oneline"><b>AI를 썼는지로 채점하지 않습니다. 스스로 확인하세요 — 내가 설명할 수 있는 코드인가?</b></p>
+      <table>
+        <thead><tr><th>구역</th><th>AI 사용</th><th>조건</th></tr></thead>
+        <tbody>
+          <tr><td>개념 학습·예습·복습<br>(01 이론 확인 문제 포함)</td><td><b>자유</b></td><td>답을 그대로 옮기지 말고, 물어본 것은 <b>내 말로 3줄 요약</b>해 노트에 남깁니다.</td></tr>
+          <tr><td>실습 코드<br>(03 실습)</td><td><b>조건부</b></td><td>사용 공개 + 구두 설명. 두 조건을 지키면 자유롭게 쓸 수 있습니다.</td></tr>
+          <tr><td>시험·퀴즈·구두 확인</td><td><b>전면 금지</b></td><td>대면·종이. 전자기기 사용 불가.</td></tr>
+        </tbody>
+      </table>
+      <p class="caps">제출물</p>
+      <ul class="dl">
+        <li><b>토론 기록</b> — 02의 기록표(예측·결과·원인·추가 질문)와 둘이 만든 질문</li>
+        <li><b>확인 기록</b> — 각 문제의 "확인할 것"에 적은 관찰 결과</li>
+        <li><b>실행 화면</b> — 입력과 출력</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="th-block">
+    <div class="block-head"><span class="idx">01</span><h2>이론 확인 문제 — 4지선다 16문항</h2></div>
+    <p class="lead">보기를 누르면 바로 정답 여부가 표시됩니다. 점수는 매기지 않습니다 — 틀린 문항의 해설을 읽고 넘어가세요.</p>
+    <div class="qlist">
+<div class="qcard" data-ans="④">
+  <p class="qtext"><span class="qn">Q1.</span> 함수 <code>void show(istream&amp; in)</code>이 있습니다. 다음 중 <code>show</code>에 넘기면 <b>컴파일되지 않는</b> 객체는?</p>
+  
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>ifstream a("in.txt");</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>fstream b("in.txt");</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>cin</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>ofstream c("out.txt");</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+<p><code>ifstream</code>은 <code>istream</code>을, <code>fstream</code>은 <code>iostream</code>을 거쳐 <code>istream</code>을 상속하므로 <code>istream&amp;</code>에 묶입니다. <code>cin</code>도 <code>istream</code> 객체입니다. <code>ofstream</code>은 <code>ostream</code>만 상속하므로 <code>istream&amp;</code>로 받을 수 없습니다. 파일 스트림이 표준 스트림의 파생 클래스라서, <code>cin</code>·<code>cout</code>에 쓰던 함수를 파일에도 그대로 쓸 수 있습니다. 근거: 14.2 (p4~5)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q2.</span> <code>a.txt</code>가 없는 상태에서 실행했습니다. 출력은?</p>
+  <pre>{ ofstream f("a.txt"); f &lt;&lt; "hello"; }
+{ ofstream f("a.txt"); f &lt;&lt; "hi"; }
+ifstream in("a.txt");
+string s;
+in &gt;&gt; s;
+cout &lt;&lt; s;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>hello</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>hi</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>hihello</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>hillo</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+<p>두 번째 인자를 생략한 <code>ofstream</code>의 열기 모드는 <code>ios::out</code>이고, 이 모드는 파일에 있던 내용을 버리고(<code>ios::trunc</code>와 같은 동작) 처음부터 씁니다. 그래서 <code>hello</code>는 사라지고 <code>hi</code>만 남습니다. 앞 글자만 덮어쓰는 것(④)이 아닙니다. 블록 <code>{ }</code>이 끝날 때 소멸자가 파일을 닫습니다. 근거: 14.3 (p7, p9, p11)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q3.</span> <code>a.txt</code>가 없는 상태에서 실행했습니다. 출력은?</p>
+  <pre>{ ofstream f("a.txt"); f &lt;&lt; "A\n"; }
+{ ofstream f("a.txt", ios::app); f &lt;&lt; "B\n"; }
+{ ofstream f("a.txt", ios::app); f &lt;&lt; "C\n"; }
+ifstream in("a.txt");
+string s;
+while (in &gt;&gt; s)
+    cout &lt;&lt; s;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>ABC</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>C</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>BC</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>A</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+<p><code>ios::app</code>은 기존 내용을 유지하고 모든 출력을 파일 끝에 덧붙입니다. 첫 번째 <code>ofstream</code>이 <code>A</code>를 쓰고, 이어지는 두 번의 <code>app</code>이 <code>B</code>와 <code>C</code>를 덧붙여 파일은 세 줄이 됩니다. 근거: 14.3 (p7), 파일 열기 모드 (p11)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q4.</span> <code>nofile.txt</code>와 <code>newfile.txt</code>가 모두 없는 상태에서 실행했습니다. 출력은?</p>
+  <pre>ifstream in("nofile.txt");
+cout &lt;&lt; !in &lt;&lt; in.fail() &lt;&lt; " ";
+ofstream out("newfile.txt");
+cout &lt;&lt; !out;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>00 0</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>11 1</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>11 0</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>00 1</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+<p>입력용으로 여는 <code>ifstream</code>은 파일이 없으면 열기에 실패하고 failbit를 켭니다. 그래서 <code>!in</code>과 <code>in.fail()</code>이 모두 1입니다. 출력용 <code>ofstream</code>은 파일이 없으면 새로 만들기 때문에 성공하고 <code>!out</code>은 0입니다. 파일을 연 뒤 <code>if (!파일객체)</code>로 검사하는 것은 13장의 <code>operator!</code>를 그대로 쓰는 것입니다. 근거: 14.3 (p6~7), 14.4 (p12)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q5.</span> <code>a.txt</code>, <code>b.txt</code>가 없는 상태에서 실행했습니다. 출력은?</p>
+  <pre>ofstream f;
+cout &lt;&lt; f.fail();
+f.open("a.txt");
+cout &lt;&lt; f.fail();
+f.open("b.txt");
+cout &lt;&lt; f.fail();</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>000</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>001</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>011</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>111</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+<p>인자 없이 만든 <code>ofstream</code>은 아직 파일과 연결되지 않았을 뿐 실패 상태가 아닙니다. <code>open</code>으로 <code>a.txt</code>를 열면 성공합니다. 이미 파일이 열린 객체에 다시 <code>open</code>을 호출하면 열기가 실패하고 failbit가 켜집니다. 다른 파일을 열려면 먼저 <code>close()</code>를 호출해야 합니다. 근거: 14.3 (p8~9)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qtext"><span class="qn">Q6.</span> 다음 프로그램의 출력은?</p>
+  <pre>struct Log
+{
+    ~Log() { cout &lt;&lt; "closed\n"; }
+};
+int main()
+{
+    Log file;
+    cout &lt;&lt; "start\n";
+    exit(EXIT_SUCCESS);
+}</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>start</code>와 <code>closed</code> 두 줄</span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>closed</code>와 <code>start</code> 두 줄</span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t">아무것도 출력되지 않는다</span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>start</code> 한 줄</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+<p><code>exit</code>는 프로그램을 끝내지만 지역 객체의 소멸자는 부르지 않습니다(정적 객체만 정리합니다). <code>return 0;</code>으로 끝내면 <code>closed</code>까지 두 줄이 나옵니다. 지역 <code>ofstream</code>도 소멸자가 파일을 닫으므로, 파일을 쓴 뒤에는 <code>exit</code>보다 <code>return</code>으로 끝내는 편이 안전합니다. 근거: 14.3 (p10)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q7.</span> <code>c.txt</code>에 <code>x</code>가 들어 있는 상태에서 실행했습니다. 출력은?</p>
+  <pre>ofstream g("c.txt", ios::out | ios::ate);
+g &lt;&lt; "y";
+g.close();
+ifstream in("c.txt");
+string s;
+in &gt;&gt; s;
+cout &lt;&lt; s;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>y</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>xy</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>yx</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>x</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+<p><code>ios::out</code>은 파일을 여는 순간 기존 내용을 모두 지웁니다. 그래서 <code>x</code>는 사라지고 파일은 빈 상태가 됩니다. <code>ios::ate</code>는 연 직후 위치를 파일 끝으로 옮길 뿐, 내용을 지우거나 남기는 일에는 관여하지 않습니다. 빈 파일이라 끝과 처음이 같은 0번 자리이므로, 그 자리에 <code>y</code>가 쓰여 결과는 <code>y</code>입니다. 기존 내용 뒤에 덧붙이려면 <code>ios::app</code>으로 엽니다. 근거: 파일 열기 모드 (p11)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q8.</span> <code>never.txt</code>와 <code>never2.txt</code>가 모두 없는 상태에서 실행했습니다. 출력은?</p>
+  <pre>fstream f("never.txt", ios::in | ios::out);
+cout &lt;&lt; f.fail() &lt;&lt; " ";
+fstream g("never2.txt", ios::out);
+cout &lt;&lt; g.fail();</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>0 0</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>0 1</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>1 0</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>1 1</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+<p><code>ios::in</code>이 들어간 열기 모드는 파일이 이미 있어야 합니다. 그래서 없는 파일을 <code>in | out</code>으로 열면 실패합니다. <code>ios::out</code>만 주면 파일을 새로 만들므로 성공합니다. 입출력을 함께 쓰는 파일은 먼저 만들어 두어야 한다는 뜻입니다. 근거: 14.2 (p4), 파일 열기 모드 (p11)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q9.</span> <code>c.txt</code>의 내용이 <code>100 Jones 24.98</code>, <code>200 Doe 345.67</code> 두 줄(마지막 줄도 줄바꿈으로 끝남)입니다. 출력은?</p>
+  <pre>ifstream in("c.txt");
+int a = 0;
+string n;
+double b;
+while (!in.eof()) {
+    in &gt;&gt; a &gt;&gt; n &gt;&gt; b;
+    cout &lt;&lt; a &lt;&lt; " ";
+}</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>100 200 </code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>100 200 0 </code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>100 200 200 </code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t">무한 반복</span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+<p>두 번째 레코드를 읽은 직후에는 마지막 줄바꿈이 남아 있어 아직 파일 끝이 아닙니다. 세 번째 반복에서 <code>&gt;&gt;</code>가 공백을 건너뛰다 끝에 닿아 실패하고, 이때 비로소 eofbit가 켜집니다. 읽기에 실패했어도 <code>cout</code>은 실행되므로, 바뀌지 않은 <code>a</code>의 값 200이 한 번 더 출력됩니다. 읽기 자체를 조건으로 쓰는 <code>while (in &gt;&gt; a &gt;&gt; n &gt;&gt; b)</code>가 안전합니다. 근거: 14.4 (p16~18)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q10.</span> <code>c.txt</code>의 첫 줄이 <code>100 Kim Minsu 24.98</code>입니다(둘째 줄은 <code>200 Doe 345.67</code>). 출력은?</p>
+  <pre>ifstream in("c.txt");
+int a;
+string n;
+double b = -1;
+int cnt = 0;
+while (in &gt;&gt; a &gt;&gt; n &gt;&gt; b) {
+    cout &lt;&lt; a &lt;&lt; n &lt;&lt; " ";
+    ++cnt;
+}
+cout &lt;&lt; cnt &lt;&lt; " " &lt;&lt; b;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>0 0</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>100Kim 200Doe 2 345.67</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>100Kim 1 24.98</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>0 -1</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+<p><code>&gt;&gt;</code>로 <code>string</code>을 읽으면 공백에서 멈추므로 <code>n</code>은 <code>Kim</code>입니다. 이어서 <code>b</code>를 읽으려 할 때 <code>Minsu</code>를 만나 숫자 변환이 실패하고, 실패한 변환은 <code>b</code>에 0을 넣습니다. 첫 레코드부터 조건이 거짓이라 본문은 한 번도 실행되지 않습니다. 공백을 이름 안에 넣지 않는 것이 이 장의 순차 파일 형식의 약속입니다. 근거: 14.3 (p6), 14.4 (p16~18)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qtext"><span class="qn">Q11.</span> <code>d.txt</code>의 내용은 줄바꿈 없는 <code>ABCDEFGHIJ</code>입니다. 출력은?</p>
+  <pre>ifstream in("d.txt");
+in.seekg(-3, ios::end);
+cout &lt;&lt; (char)in.peek() &lt;&lt; in.tellg();
+in.seekg(2);
+in.seekg(3, ios::cur);
+cout &lt;&lt; " " &lt;&lt; (char)in.peek() &lt;&lt; in.tellg();</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>C3 F5</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>H8 F5</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>I7 E4</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>H7 F5</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+<p>파일 끝(10) 기준으로 −3이면 7번 바이트 <code>H</code>입니다. 끝 기준으로 앞쪽으로 가려면 음수를 줘야 합니다. <code>seekg(2)</code>는 처음 기준(<code>ios::beg</code>가 기본값)으로 2번, 이어서 <code>ios::cur</code> 기준으로 3만큼 가면 5번 바이트 <code>F</code>입니다. <code>peek</code>은 문자를 꺼내지 않으므로 <code>tellg</code>가 바뀌지 않습니다. 근거: 14.4 (p13~15)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q12.</span> <code>c.txt</code>의 내용은 <code>100 Jones 24.98</code> 한 줄입니다. 출력은?</p>
+  <pre>ifstream in("c.txt");
+cout &lt;&lt; in.tellg();
+int a;
+in &gt;&gt; a;
+cout &lt;&lt; " " &lt;&lt; in.tellg();
+string n;
+in &gt;&gt; n;
+cout &lt;&lt; " " &lt;&lt; in.tellg();</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>0 4 10</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>0 3 9</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>1 4 10</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>0 3 10</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+<p>연 직후 파일 위치 포인터는 0입니다. <code>&gt;&gt;</code>는 <code>100</code>의 세 글자를 읽고 그 다음 공백 앞에서 멈추므로 위치는 3입니다. 다음 <code>&gt;&gt;</code>는 공백 하나를 건너뛰고 <code>Jones</code> 다섯 글자를 읽어 위치 9에서 멈춥니다. 위치 포인터는 "다음에 읽을 바이트의 번호"입니다. 근거: 14.4 (p13, p15)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="①">
+  <p class="qtext"><span class="qn">Q13.</span> <code>e.txt</code>가 없는 상태에서 실행했습니다. 출력은?</p>
+  <pre>{
+    ofstream f("e.txt");
+    f &lt;&lt; "0123456789";
+    f.seekp(2);
+    f &lt;&lt; "ab";
+    cout &lt;&lt; f.tellp() &lt;&lt; " ";
+    f.seekp(-1, ios::end);
+    f &lt;&lt; "Z";
+    cout &lt;&lt; f.tellp();
+}
+ifstream in("e.txt");
+string s;
+in &gt;&gt; s;
+cout &lt;&lt; " " &lt;&lt; s;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>4 10 01ab45678Z</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>4 10 ab23456789Z</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>2 9 01ab456789Z</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>4 11 01ab456789Z</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ①</b></p>
+<p><code>seekp(2)</code>로 쓰기 위치를 2번으로 옮기고 <code>ab</code>를 쓰면 <code>2</code>와 <code>3</code>을 덮어써서 위치는 4가 됩니다. <code>seekp(-1, ios::end)</code>는 마지막 바이트(9번) 위치로, 거기에 <code>Z</code>를 쓰면 <code>9</code>를 덮어쓰고 위치는 10이 됩니다. 쓰기 위치를 옮긴 뒤 쓰면 끼워 넣는 것이 아니라 <b>덮어씁니다</b>. 근거: 14.4 (p13~15)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="④">
+  <p class="qtext"><span class="qn">Q14.</span> <code>c.txt</code>에 레코드 3개(<code>1 A 10</code>, <code>2 B 0</code>, <code>3 C -5</code>)가 있습니다. 출력은?</p>
+  <pre>ifstream in("c.txt");
+int a;
+string n;
+double b;
+int k = 0;
+while (in &gt;&gt; a &gt;&gt; n &gt;&gt; b) ++k;
+cout &lt;&lt; k &lt;&lt; " ";
+in.seekg(0);
+k = 0;
+while (in &gt;&gt; a &gt;&gt; n &gt;&gt; b) ++k;
+cout &lt;&lt; k &lt;&lt; " ";
+in.clear();
+in.seekg(0);
+k = 0;
+while (in &gt;&gt; a &gt;&gt; n &gt;&gt; b) ++k;
+cout &lt;&lt; k;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>3 3 3</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>3 0 0</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>3 3 0</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>3 0 3</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ④</b></p>
+<p>첫 반복이 끝나면 eofbit와 failbit가 켜져 있습니다. failbit가 켜진 상태에서는 <code>seekg(0)</code>도 동작하지 않고, 이어지는 읽기도 모두 실패해 0개입니다. <code>clear()</code>로 상태를 지운 뒤 <code>seekg(0)</code>으로 되감아야 다시 3개를 읽습니다. 슬라이드 22쪽(64~65행)의 신용 조회 프로그램이 요청마다 <code>clear()</code>와 <code>seekg(0)</code>을 함께 부르는 이유입니다. 근거: 14.4 (p22)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="②">
+  <p class="qtext"><span class="qn">Q15.</span> 강의 슬라이드 23쪽(신용 조회 프로그램)의 입력 검사 반복문입니다. <code>9</code>, <code>2</code>를 차례로 입력하면 출력은?</p>
+  <pre>int request;
+int tries = 0;
+do {
+    cin &gt;&gt; request;
+    ++tries;
+} while (request &lt; 1 &amp;&amp; request &gt; 4);
+cout &lt;&lt; request &lt;&lt; " " &lt;&lt; tries;</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>2 2</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>9 1</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>2 1</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>9 2</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ②</b></p>
+<p>어떤 수도 1보다 작으면서 동시에 4보다 클 수는 없으므로 조건은 항상 거짓이고, 반복문은 첫 입력 9를 그대로 받아들입니다. 범위 밖 입력을 다시 묻으려면 <code>request &lt; 1 || request &gt; 4</code>여야 합니다. 슬라이드 23쪽의 말풍선이 지적하는 오류입니다. 근거: 14.4 (p23)</p>
+  </details>
+</div>
+<div class="qcard" data-ans="③">
+  <p class="qtext"><span class="qn">Q16.</span> <code>s.txt</code>에 <code>300 White 0.00</code>, <code>400 Stone -42.16</code> 두 줄이 있습니다. 이름 <code>White</code>를 <code>Worthing</code>으로 고치려고 다음 코드를 실행했습니다. 출력은?</p>
+  <pre>{
+    fstream io("s.txt", ios::in | ios::out);
+    io.seekp(4);
+    io &lt;&lt; "Worthing";
+}
+ifstream in("s.txt");
+string line;
+while (getline(in, line))
+    cout &lt;&lt; "|" &lt;&lt; line &lt;&lt; "|";</pre>
+  <div class="opts"><div class="opt" role="button" tabindex="0" data-k="①"><span class="k">①</span><span class="t"><code>|300 Worthing 0.00||400 Stone -42.16|</code></span></div><div class="opt" role="button" tabindex="0" data-k="②"><span class="k">②</span><span class="t"><code>|300 Worthing||400 Stone -42.16|</code></span></div><div class="opt" role="button" tabindex="0" data-k="③"><span class="k">③</span><span class="t"><code>|300 Worthing00||400 Stone -42.16|</code></span></div><div class="opt" role="button" tabindex="0" data-k="④"><span class="k">④</span><span class="t"><code>|300 White 0.00||400 Stone -42.16|</code></span></div></div>
+  <p class="feedback" hidden></p>
+  <details class="sol"><summary>정답 및 해설 보기</summary>
+    <p><b>정답 ③</b></p>
+<p><code>seekp(4)</code>부터 쓰는 <code>Worthing</code>(8자)은 <code>White</code>(5자)보다 길어서, <code>White</code> 뒤의 공백과 <code>0.</code>까지 8바이트를 덮어씁니다. 그래서 첫 줄은 <code>300 Worthing00</code>이 됩니다. 쓰기 위치에 끼워 넣는 것이 아니라 덮어쓰기 때문입니다. 이 파일을 <code>&gt;&gt;</code>로 다시 읽으면 이름이 <code>Worthing00</code>이고 잔액 자리에서 다음 줄의 <code>400</code>을 읽게 되어 레코드가 어긋납니다. 텍스트 순차 파일의 레코드는 길이가 제각각이라 한 레코드만 제자리에서 고칠 수 없습니다. 그래서 14.5는 앞의 레코드를 복사하고, 새 레코드를 쓰고, 뒤의 레코드를 복사하는 방식으로 파일 전체를 다시 쓰라고 합니다. 근거: 14.5 (p27)</p>
+  </details>
+</div>
+    </div>
+  </section>
+
+  <section class="block" id="dg-block">
+    <div class="block-head"><span class="idx">02</span><h2>토론·검증 — 2인 1조로 묻고 확인하기</h2></div>
+    <div class="md-body"><p>제공 코드는 두 벌입니다. <b>A</b>(<code>write_read.cpp</code>)는 순차 파일을 쓰고 다시 읽고, <b>B</b>(<code>position.cpp</code>)는 파일 위치 포인터를 옮기며 읽고 제자리 갱신을 시도합니다. B는 위치를 바이트 단위로 세기 쉽도록 레코드를 줄바꿈 없이 공백으로 이어 씁니다. 둘 다 입력이 없고, 실행한 폴더에 파일(<code>clients.txt</code>, <code>accounts.txt</code>)을 만듭니다. Visual Studio에서 디버그 실행하면 그 폴더는 프로젝트 폴더입니다.</p>
+<p><b>역할</b> — 두 사람이 학생 1과 학생 2를 정하세요. <b>홀수 문항은 학생 1이 조작자, 학생 2가 질문자</b>이고, <b>짝수 문항은 반대</b>입니다.</p>
+<ul>
+<li><b>조작자</b>는 코드를 한 곳만 바꾸고, 실행하기 전에 질문에 답하며 결과를 예측합니다.</li>
+<li><b>질문자</b>는 질문 카드를 읽어 묻고, 조작자의 예측과 이유를 기록표에 적습니다. 카드에 없는 질문도 하나 이상 만들어 물으세요.</li>
+</ul>
+<p><b>진행 순서</b></p>
+<ol>
+<li><b>기준선</b> — A와 B를 바꾸지 않고 한 번씩 실행해, 둘이 함께 화면 전체를 적으세요.</li>
+<li><b>바꾸기</b> — 조작자가 문항이 지정한 한 곳만 바꾸세요. 아직 실행하지 마세요.</li>
+<li><b>실행 전 질문</b> — 질문자가 질문 카드의 "실행 전" 질문을 묻고, 조작자는 예측과 이유를 말합니다. 질문자는 그 답을 기록표에 적으세요.</li>
+<li><b>실행과 비교</b> — 실행해서 예측과 다른 줄을 찾으세요.</li>
+<li><b>실행 후 토론</b> — "실행 후" 질문과 직접 만든 질문으로 토론해, 원인을 한 문장으로 합의해 적으세요.</li>
+<li><b>되돌리기</b> — 코드를 원래대로 되돌리고, 역할을 바꿔 다음 문항으로 가세요.</li>
+</ol>
+<p>토론 2는 토론 1에서 레코드가 늘어난 <code>clients.txt</code>를 그대로 둔 채 시작합니다. 파일을 지우지 마세요.</p>
+<p><b>질문을 만드는 네 가지 방법</b> — 질문 카드 외의 질문은 이 틀을 빌려 만드세요.</p>
+<table><thead><tr><th>유형</th><th>틀</th><th>예</th></tr></thead><tbody><tr><td>예측</td><td>"실행하면 몇 줄(몇 개, 어떤 값)이 나올까?"</td><td>"read 몇 records가 찍힐까?"</td></tr><tr><td>이유</td><td>"왜 그 값이 나왔다고 생각해?"</td><td>"eof가 1인데 왜 fail도 1이야?"</td></tr><tr><td>변형</td><td>"이 줄을 ~로 바꾸면 어떻게 될까?"</td><td>"ios::app 대신 ios::ate면?"</td></tr><tr><td>연결</td><td>"교재 몇 쪽의 어떤 설명과 같은 현상이야?"</td><td>"p11 표의 어느 모드 설명이야?"</td></tr></tbody></table>
+<p><b>기록표</b></p>
+<table><thead><tr><th>문항</th><th>질문자</th><th>조작자의 예측과 이유</th><th>실제 결과</th><th>원인(둘이 합의)</th><th>직접 만든 질문과 답</th></tr></thead><tbody><tr><td>1</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>2</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>3</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>4</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>5</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>6</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>7</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>8</td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table></div>
+    <div class="md-card">
+  <p class="md-tag">제공 코드</p>
+  <h3>제공 코드 A — 순차 파일 쓰기와 읽기 (파일 <code>src/discuss/write_read.cpp</code>)</h3>
+  <div class="md-body"><pre>// write_read.cpp — 13주차 02 토론·검증 · 제공 코드 A (순차 파일 쓰기와 읽기)
+// 14.3 순차 파일 만들기, 파일 열기 모드, 14.4 순차 파일 읽기
+//
+// 입력은 없습니다. 실행하면 같은 폴더에 clients.txt를 만들고 다시 읽습니다.
+// (Visual Studio에서 디버그 실행하면 "같은 폴더"는 프로젝트 폴더입니다.)
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+struct Client
+{
+    int account;
+    const char* name;
+    double balance;
+};
+
+int main()
+{
+    const Client data[3] = {
+        { 100, "Jones", 24.98 },
+        { 200, "Doe", 345.67 },
+        { 300, "White", 0.0 }
+    };
+
+    // ---- 1) 쓰기 ----
+    ofstream out("clients.txt", ios::out);                 // (A) 열기 모드
+    if (!out) {
+        cerr &lt;&lt; "cannot open clients.txt for writing\n";
+        return 1;
+    }
+    for (const Client&amp; c : data)
+        out &lt;&lt; c.account &lt;&lt; ' ' &lt;&lt; c.name &lt;&lt; ' ' &lt;&lt; c.balance &lt;&lt; '\n';
+    cout &lt;&lt; "wrote 3 records\n";
+    out.close();                                           // (B) 파일 닫기
+
+    // ---- 2) 읽기 ----
+    ifstream in("clients.txt");                            // (C) 입력용으로 열기
+    if (!in) {
+        cerr &lt;&lt; "cannot open clients.txt for reading\n";
+        return 1;
+    }
+    int account;
+    string name;
+    double balance;
+    int count = 0;
+    while (in &gt;&gt; account &gt;&gt; name &gt;&gt; balance) {             // (D) 읽기 루프
+        cout &lt;&lt; account &lt;&lt; ' ' &lt;&lt; name &lt;&lt; ' ' &lt;&lt; balance &lt;&lt; '\n';
+        ++count;
+    }
+    cout &lt;&lt; "read " &lt;&lt; count &lt;&lt; " records, eof=" &lt;&lt; in.eof()
+         &lt;&lt; " fail=" &lt;&lt; in.fail() &lt;&lt; '\n';
+    return 0;
+}</pre></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">제공 코드</p>
+  <h3>제공 코드 B — 파일 위치 포인터와 다시 읽기 (파일 <code>src/discuss/position.cpp</code>)</h3>
+  <div class="md-body"><pre>// position.cpp — 13주차 02 토론·검증 · 제공 코드 B (파일 위치 포인터와 다시 읽기)
+// 14.4 seekg/seekp/tellg/tellp, 슬라이드 22쪽의 clear + seekg(0), 14.5 순차 파일 갱신
+//
+// 입력은 없습니다. 실행하면 같은 폴더에 accounts.txt를 만들고 위치를 옮겨 가며 읽습니다.
+// 레코드를 줄바꿈 없이 공백으로 이어 씁니다. 줄바꿈은 운영체제마다 저장되는 바이트 수가
+// 다르지만(Windows는 2바이트), 공백은 어디서나 1바이트라 위치 값이 같게 나옵니다.
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+// 다음 문자를 꺼내지 않고 보여 준다
+void showNext(istream&amp; in)
+{
+    int c = in.peek();
+    if (c == EOF)
+        cout &lt;&lt; "EOF";
+    else if (c == '\n')
+        cout &lt;&lt; "'\\n'";
+    else
+        cout &lt;&lt; "'" &lt;&lt; static_cast&lt;char&gt;(c) &lt;&lt; "'";
+}
+
+// 현재 위치부터 끝까지 레코드를 읽어 이름만 출력한다
+void listAll(istream&amp; in, const char* tag)
+{
+    int account;
+    string name;
+    double balance;
+    int n = 0;
+    cout &lt;&lt; "[" &lt;&lt; tag &lt;&lt; "]";
+    while (in &gt;&gt; account &gt;&gt; name &gt;&gt; balance) {
+        cout &lt;&lt; ' ' &lt;&lt; name;
+        ++n;
+    }
+    cout &lt;&lt; "  (" &lt;&lt; n &lt;&lt; " records)\n";
+}
+
+int main()
+{
+    // ---- 1) 파일 만들기 ----
+    {
+        ofstream out("accounts.txt", ios::out);
+        out &lt;&lt; "100 Jones 24.98 " &lt;&lt; "200 Doe 345.67 " &lt;&lt; "300 White 0.00";
+        cout &lt;&lt; "written, tellp=" &lt;&lt; out.tellp() &lt;&lt; '\n';
+    }   // 블록이 끝나면 소멸자가 파일을 닫는다
+
+    ifstream in("accounts.txt", ios::in);
+    if (!in) {
+        cerr &lt;&lt; "cannot open accounts.txt\n";
+        return 1;
+    }
+
+    // ---- 2) 위치 포인터 옮기기 ----
+    in.seekg(0, ios::end);                                 // (A) 파일 끝으로
+    cout &lt;&lt; "size=" &lt;&lt; in.tellg() &lt;&lt; '\n';
+    in.seekg(-4, ios::end);                                // (B) 끝에서 4바이트 앞
+    cout &lt;&lt; "tellg=" &lt;&lt; in.tellg() &lt;&lt; " next=";
+    showNext(in);
+    cout &lt;&lt; '\n';
+    in.seekg(4);                                           // (C) 처음에서 4바이트
+    string word;
+    in &gt;&gt; word;
+    cout &lt;&lt; "word=" &lt;&lt; word &lt;&lt; " tellg=" &lt;&lt; in.tellg() &lt;&lt; '\n';
+
+    // ---- 3) 처음부터 두 번 읽기 (슬라이드 22쪽 방식) ----
+    in.seekg(0);
+    listAll(in, "pass 1");
+    in.clear();                                            // (D) eofbit·failbit 지우기
+    in.seekg(0);                                           // (E) 처음으로 되감기
+    listAll(in, "pass 2");
+    in.close();
+
+    // ---- 4) 제자리 갱신 (14.5) ----
+    fstream io("accounts.txt", ios::in | ios::out);
+    io.seekp(20);                                          // (F) 둘째 레코드의 이름 자리
+    io &lt;&lt; "Kim";                                           // (G) 같은 길이(3자)로 덮어쓰기
+    io.close();
+
+    ifstream again("accounts.txt", ios::in);
+    string line;
+    while (getline(again, line))
+        cout &lt;&lt; "  |" &lt;&lt; line &lt;&lt; "|\n";
+    return 0;
+}</pre></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 1 — A의 (A) 열기 모드를 <code>ios::app</code>으로 바꾼다</h3>
+  <div class="md-body"><p>조작자: 학생 1 · 질문자: 학생 2</p>
+<p>바꾸기: <code>ofstream out("clients.txt", ios::out);</code>를 <code>ofstream out("clients.txt", ios::app);</code>로 바꾸고, <b>두 번</b> 실행하세요.</p>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) 첫 번째 실행과 두 번째 실행에서 <code>read N records</code>의 N은 각각 얼마일까?</li>
+<li>(실행 전) 기준선 코드는 몇 번을 실행해도 3이었어. 무엇이 달라서 그런 걸까?</li>
+<li>(실행 후) 이 프로그램을 매일 한 번씩 실행하면 <code>clients.txt</code>는 어떻게 될까? 그게 바람직한 경우와 그렇지 않은 경우를 하나씩 들어 볼래?</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> 실행할 때마다 레코드가 3개씩 늘어납니다. 기준선에서 만든 파일이 남아 있으면 첫 실행은 <code>read 6 records</code>, 두 번째는 <code>read 9 records</code>입니다(파일을 지우고 시작했다면 3, 6).</li>
+<li><b>원인</b> <code>ios::app</code>은 기존 내용을 지우지 않고 모든 출력을 파일 끝에 덧붙입니다. 기준선의 <code>ios::out</code>은 열 때마다 내용을 비웁니다.</li>
+<li><b>정리</b> 로그·기록처럼 쌓아야 하는 파일은 <code>app</code>, 매번 새로 만들어야 하는 결과 파일은 <code>out</code>입니다. 같은 프로그램을 여러 번 실행할 때 파일이 어떻게 되는지가 모드 선택의 기준입니다.</li>
+</ul>
+<pre>--- 두 번째 실행 (기준선 파일이 남아 있던 경우) ---
+wrote 3 records
+100 Jones 24.98
+200 Doe 345.67
+300 White 0
+100 Jones 24.98
+200 Doe 345.67
+300 White 0
+100 Jones 24.98
+200 Doe 345.67
+300 White 0
+read 9 records, eof=1 fail=1</pre></details></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 2 — A의 (A) 열기 모드를 <code>ios::out | ios::ate</code>로 바꾼다</h3>
+  <div class="md-body"><p>조작자: 학생 2 · 질문자: 학생 1</p>
+<p>바꾸기: 토론 1에서 레코드가 늘어난 <code>clients.txt</code>를 지우지 말고, <code>ofstream out("clients.txt", ios::out | ios::ate);</code>로 바꿔 한 번 실행하세요.</p>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) p11 표에서 <code>ate</code>는 "출력용으로 열고 파일 끝으로 이동"이야. 그러면 이미 있던 레코드는 남을까? 몇 개가 읽힐까?</li>
+<li>(실행 전) <code>app</code>과 <code>ate</code>는 둘 다 "끝"과 관련 있는데, 무엇이 다를까?</li>
+<li>(실행 후) 기존 내용을 남기면서 <code>ate</code>를 쓰려면 열기 모드를 어떻게 바꿔야 할까? 바꿔서 실행해 확인해 볼래?</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> 기존 레코드가 모두 사라지고 <code>read 3 records</code>입니다.</li>
+<li><b>원인</b> <code>ios::out</code>에 <code>ios::in</code>이나 <code>ios::app</code>이 함께 없으면 파일을 여는 순간 내용이 비워집니다. <code>ate</code>는 연 <b>뒤에</b> 위치를 끝으로 옮길 뿐이라, 이미 빈 파일의 끝으로 갑니다.</li>
+<li><b>정리</b> <code>ios::in | ios::out</code>은 이미 있는 파일을 지우지 않고 읽기·쓰기용으로 엽니다(파일이 없으면 실패). 여기에 <code>ate</code>를 더하면 연 직후 위치가 끝에 놓여, 기존 내용 뒤에 이어 씁니다(3개 파일에서 실행하면 <code>read 6 records</code>). 쓰기를 가능하게 하는 것은 <code>out</code>이고, <code>ate</code>는 시작 위치만 정합니다.</li>
+</ul>
+<table><thead><tr><th>모드</th><th>끝으로 가는 때</th><th><code>seekp</code>로 다른 위치에 쓰기</th></tr></thead><tbody><tr><td><code>ate</code></td><td>열 때 한 번만</td><td>옮긴 자리에 덮어쓴다</td></tr><tr><td><code>app</code></td><td>쓸 때마다</td><td>무시되고 끝에 붙는다</td></tr></tbody></table>
+<pre>wrote 3 records
+100 Jones 24.98
+200 Doe 345.67
+300 White 0
+read 3 records, eof=1 fail=1</pre></details></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 3 — A의 (B) <code>out.close();</code>를 지운다</h3>
+  <div class="md-body"><p>조작자: 학생 1 · 질문자: 학생 2</p>
+<p>바꾸기: <code>(B)</code> 줄을 지우세요. 입력은 없습니다.</p>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) <code>out</code>은 <code>main</code>이 끝날 때 소멸자가 닫아 주는데, close를 지워도 읽기 결과는 같을까?</li>
+<li>(실행 전) 프로그램이 끝난 뒤 <code>clients.txt</code>를 메모장으로 열면 내용이 있을까?</li>
+<li>(실행 후) <code>close()</code>를 쓰지 않고 같은 문제를 해결하는 방법이 또 있을까? (힌트: 블록 <code>{ }</code>, 또는 출력을 바로 내보내는 함수)</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> <code>wrote 3 records</code> 다음에 레코드가 하나도 출력되지 않고 <code>read 0 records, eof=1 fail=1</code>입니다. 그런데 프로그램이 끝난 뒤 <code>clients.txt</code>에는 세 레코드가 모두 들어 있습니다.</li>
+<li><b>원인</b> <code>out &lt;&lt;</code>로 쓴 내용은 곧바로 파일에 가지 않고 출력 버퍼에 모여 있습니다. 읽기 시점에는 파일이 <code>ios::out</code>으로 비워진 상태 그대로라 읽을 것이 없습니다. <code>main</code>이 끝날 때 <code>out</code>의 소멸자가 버퍼를 비우고 파일을 닫으면서 내용이 기록됩니다.</li>
+<li><b>정리</b> 같은 파일을 다시 열어 읽기 전에는 <code>close()</code>로 닫습니다. 쓰기 객체를 블록 <code>{ }</code> 안에 두어 블록이 끝날 때 닫히게 하거나(제공 코드 B의 방식), <code>out.flush()</code>로 버퍼를 비워도 됩니다.</li>
+</ul>
+<pre>wrote 3 records
+read 0 records, eof=1 fail=1</pre></details></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 4 — A의 (D) 읽기 루프를 <code>eof()</code> 검사로 바꾼다</h3>
+  <div class="md-body"><p>조작자: 학생 2 · 질문자: 학생 1</p>
+<p>바꾸기: <code>(D)</code> 줄 <code>while (in &gt;&gt; account &gt;&gt; name &gt;&gt; balance) {</code>를 아래 두 줄로 바꾸세요.</p>
+<pre>    while (!in.eof()) {                                    // (D) 읽기 루프
+        in &gt;&gt; account &gt;&gt; name &gt;&gt; balance;</pre>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) 레코드는 3개인데 몇 줄이 출력될까?</li>
+<li>(실행 전) 마지막 레코드를 읽은 직후에 <code>in.eof()</code>는 true일까, false일까? 왜?</li>
+<li>(실행 후) 슬라이드 22쪽의 신용 조회 프로그램도 <code>while (!inClientFile.eof())</code>를 쓰는데 같은 문제가 없어. 슬라이드 21~22쪽 코드는 무엇을 다르게 했을까?</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> <code>300 White 0</code>이 두 번 출력되고 <code>read 4 records</code>입니다.</li>
+<li><b>원인</b> 마지막 레코드 뒤에 줄바꿈이 남아 있어, 읽은 직후에는 아직 파일 끝이 아닙니다. 네 번째 반복에서 <code>&gt;&gt;</code>가 끝에 닿아 실패하면서 eofbit가 켜지는데, 실패해도 그 반복의 출력은 실행됩니다. 이때 변수는 바뀌지 않아 직전 레코드가 한 번 더 나옵니다.</li>
+<li><b>정리</b> 읽기 자체를 조건으로 쓰는 <code>while (in &gt;&gt; ...)</code>가 기본입니다. 슬라이드 21~22쪽의 신용 조회 프로그램은 반복문 <b>앞에서</b> 한 번 읽고(슬라이드 21쪽 50~51행), 본문 <b>끝에서</b> 다음 레코드를 읽으므로(슬라이드 22쪽 60~61행) 실패한 읽기 뒤에 출력하지 않습니다.</li>
+</ul>
+<pre>300 White 0
+300 White 0
+read 4 records, eof=1 fail=1</pre></details></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 5 — B의 (B) <code>seekg(-4, ios::end)</code>를 <code>seekg(4, ios::end)</code>로 바꾼다</h3>
+  <div class="md-body"><p>조작자: 학생 1 · 질문자: 학생 2</p>
+<p>바꾸기: <code>in.seekg(-4, ios::end);</code>의 <code>-4</code>를 <code>4</code>로 바꾸세요.</p>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) 기준선은 <code>tellg=41 next='0'</code>이었어. 바꾸면 <code>tellg</code>와 <code>next</code>는 무엇이 될까?</li>
+<li>(실행 전) 파일 크기는 45바이트야. "끝에서 4바이트 앞"으로 가려면 왜 음수를 줘야 할까?</li>
+<li>(실행 후) 끝을 넘어간 뒤에도 다음 줄의 <code>seekg(4)</code>와 <code>&gt;&gt; word</code>는 정상이었어. 왜 그럴까? 토론 8과 비교해 보자.</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> <code>tellg=49 next=EOF</code>가 나오고, 나머지 줄은 기준선과 같습니다.</li>
+<li><b>원인</b> <code>ios::end</code> 기준으로 양수를 주면 끝보다 <b>뒤</b>로 갑니다. 그 자리에는 읽을 문자가 없어 <code>peek</code>이 EOF를 돌려주고 eofbit가 켜집니다.</li>
+<li><b>정리</b> 끝 기준으로 앞쪽 위치를 가리키려면 음수를 줍니다(p14). 다음 <code>seekg(4)</code>가 정상인 것은 <code>seekg</code>가 eofbit를 먼저 지우고 옮기기 때문입니다. failbit는 지우지 않으므로 토론 8과 결과가 다릅니다.</li>
+</ul>
+<pre>size=45
+tellg=49 next=EOF
+word=Jones tellg=9</pre></details></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 6 — B의 (D) <code>in.clear();</code>를 지운다</h3>
+  <div class="md-body"><p>조작자: 학생 2 · 질문자: 학생 1</p>
+<p>바꾸기: <code>(D)</code> 줄을 지우세요. <code>(E)</code>의 <code>seekg(0)</code>은 그대로 둡니다.</p>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) <code>seekg(0)</code>으로 처음으로 되감았으니 pass 2도 3개를 읽을까?</li>
+<li>(실행 전) pass 1이 끝났을 때 <code>in</code>의 상태 비트는 무엇이 켜져 있을까?</li>
+<li>(실행 후) 반대로 <code>clear()</code>는 두고 <code>seekg(0)</code>만 지우면 어떻게 될까? 실행해서 확인해 볼래?</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> <code>[pass 2]  (0 records)</code>입니다.</li>
+<li><b>원인</b> pass 1은 끝에서 읽기가 실패하며 끝나므로 eofbit와 failbit가 켜집니다. failbit가 켜진 스트림에서는 <code>seekg</code>가 위치를 옮기지 않고, 이어지는 읽기도 모두 실패합니다.</li>
+<li><b>정리</b> 다시 읽으려면 <code>clear()</code>로 상태를 지우고 <code>seekg(0)</code>으로 되감는 두 단계가 모두 필요합니다(슬라이드 22쪽 64~65행). <code>clear()</code>만 하고 되감지 않으면 위치가 끝에 있어 역시 0개입니다.</li>
+</ul>
+<pre>[pass 1] Jones Doe White  (3 records)
+[pass 2]  (0 records)</pre></details></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 7 — B의 (G) <code>"Kim"</code>을 <code>"Worthington"</code>으로 바꾼다</h3>
+  <div class="md-body"><p>조작자: 학생 1 · 질문자: 학생 2</p>
+<p>바꾸기: <code>io &lt;&lt; "Kim";</code>을 <code>io &lt;&lt; "Worthington";</code>으로 바꾸세요.</p>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) 마지막에 출력되는 <code>|...|</code> 줄은 어떻게 될까? 둘째 레코드와 셋째 레코드는 어떻게 될까?</li>
+<li>(실행 전) 기준선의 <code>Kim</code>은 왜 문제없이 바뀌었을까?</li>
+<li>(실행 후) <code>"Jo"</code>처럼 원래(<code>Doe</code>)보다 짧은 이름을 쓰면 어떻게 될까? 실행해서 확인해 볼래?</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> 마지막 줄이 <code>|100 Jones 24.98 200 Worthington300 White 0.00|</code>입니다. 둘째 레코드의 잔액이 사라지고 이름이 셋째 레코드의 계좌번호에 붙었습니다.</li>
+<li><b>원인</b> <code>seekp(20)</code>부터 <code>Doe 345.67</code>과 그 뒤의 공백(11바이트)이 <code>Worthington</code>(11자)으로 덮어써졌습니다. 레코드를 나누던 공백까지 사라져 둘째와 셋째 레코드가 붙었습니다. <code>Kim</code>은 <code>Doe</code>와 길이가 같아 다른 바이트를 건드리지 않았습니다.</li>
+<li><b>정리</b> 길이가 다른 텍스트 레코드는 제자리에서 고칠 수 없습니다. <code>Jo</code>처럼 짧으면 남은 글자가 섞여 <code>Joe</code>가 됩니다. 그래서 14.5(p27)는 파일 전체를 다시 쓰라고 하고, 문제 3의 예약 프로그램도 그렇게 저장합니다.</li>
+</ul>
+<pre>  |100 Jones 24.98 200 Worthington300 White 0.00|</pre></details></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">토론 문항</p>
+  <h3>토론 8 — B의 (C) <code>seekg(4)</code>를 <code>seekg(4, ios::cur)</code>로 바꾼다</h3>
+  <div class="md-body"><p>조작자: 학생 2 · 질문자: 학생 1</p>
+<p>바꾸기: <code>in.seekg(4);</code>를 <code>in.seekg(4, ios::cur);</code>로 바꾸세요.</p>
+<p><b>질문 카드</b></p>
+<ol>
+<li>(실행 전) 바로 앞에서 위치는 41이었고 파일 크기는 45야. <code>ios::cur</code> 기준으로 4를 더하면 어디이고, <code>word</code>에는 무엇이 들어갈까?</li>
+<li>(실행 전) <code>tellg()</code>가 −1을 돌려주는 때는 언제일까? (p15 참고)</li>
+<li>(실행 후) pass 1까지 0개가 됐어. pass 1 앞에 <code>seekg(0)</code>이 있는데 왜 되감기지 않았을까? 토론 5와 무엇이 다를까?</li>
+</ol><details class="sol"><summary>실행 결과·원인·정리 보기</summary><ul>
+<li><b>실행 결과</b> <code>word= tellg=-1</code>이 나오고, <code>[pass 1]  (0 records)</code>, <code>[pass 2] ... (3 records)</code>입니다.</li>
+<li><b>원인</b> 41 + 4 = 45는 파일 끝입니다. <code>&gt;&gt;</code>가 읽을 문자 없이 끝에 닿아 실패하고 failbit가 켜집니다. 실패 상태에서 <code>tellg()</code>는 −1을 돌려줍니다. <code>seekg</code>는 eofbit만 지우고 failbit는 지우지 않으므로 pass 1 앞의 <code>seekg(0)</code>도 동작하지 않습니다. <code>(D)</code>의 <code>clear()</code> 뒤에야 pass 2가 정상입니다.</li>
+<li><b>정리</b> <code>ios::cur</code>는 현재 위치 기준입니다. 위치를 옮기기 전에 스트림 상태가 정상인지 먼저 확인합니다. 실패가 있었으면 <code>clear()</code>부터 합니다.</li>
+</ul>
+<pre>tellg=41 next='0'
+word= tellg=-1
+[pass 1]  (0 records)
+[pass 2] Jones Doe White  (3 records)</pre></details></div>
+</div>
+  </section>
+
+  <section class="block" id="ts-block">
+    <div class="block-head"><span class="idx">03</span><h2>실습 — 문제 3개</h2></div>
+    <div class="md-body"><p>세 문제는 순차 파일 하나(<code>clients.txt</code>)에서 시작해 예약 프로그램의 저장 파일까지 이어집니다. 문제 1이 만든 파일을 문제 2가 읽고, 문제 3은 클래스로 만든 예약 시스템의 상태를 파일에 저장하고 다시 불러옵니다.</p>
+<table><thead><tr><th>문제</th><th>내용</th><th>이 문제에서 배우는 것</th></tr></thead><tbody><tr><td>1 [하]</td><td>순차 파일 만들기와 읽기</td><td><code>ofstream</code>·<code>ifstream</code>, 열기 모드(<code>out</code>/<code>app</code>), 파일 끝까지 입력, <code>close</code></td></tr><tr><td>2 [중]</td><td>신용 조회 프로그램 확장</td><td><code>clear()</code> + <code>seekg(0)</code>로 다시 읽기, 13장 입력 검증, 슬라이드 23쪽의 조건 오류 고치기</td></tr><tr><td>3 [상]</td><td>인하항공 예약 + 파일 저장</td><td>클래스 설계(Seat·Schedule·AirlineBook), 시작할 때 불러오기, 변경할 때 파일 전체 다시 쓰기(14.5)</td></tr></tbody></table></div>
+    <div class="md-card">
+  <p class="md-tag">실습</p>
+  <h3>문제 1 [하] — 순차 파일 만들기와 읽기</h3>
+  <div class="md-body"><p><b>요구 사항</b></p>
+<ol>
+<li>시작 파일 <code>src/task1/main.cpp</code>의 TODO 1~6을 채우세요.</li>
+<li>실행하면 <code>w</code>(새 파일) 또는 <code>a</code>(덧붙이기)를 입력받아, <code>w</code>이면 <code>ios::out</code>, <code>a</code>이면 <code>ios::app</code>으로 <code>clients.txt</code>를 여세요. 열기에 실패하면 <code>cerr</code>에 메시지를 출력하고 끝냅니다.</li>
+<li>그림 14.3처럼 <code>계좌번호 이름 잔액</code>을 파일 끝(Ctrl+Z를 누르고 Enter)까지 입력받아 한 줄에 한 레코드씩 쓰세요.</li>
+<li>쓰기를 마치면 파일을 닫고, 같은 파일을 <code>ifstream</code>으로 다시 열어 그림 14.6처럼 표로 출력하세요. 마지막 줄에 레코드 수와 잔액 합계를 출력합니다.</li>
+<li>읽기 반복은 <code>while (inClientFile &gt;&gt; account &gt;&gt; name &gt;&gt; balance)</code> 형태로 쓰세요.</li>
+</ol>
+<p><b>시작 파일</b> (<code>src/task1/main.cpp</code>)</p>
+<pre>// task1/main.cpp — 문제 1 [하] 시작 파일
+// 순차 파일 만들기(그림 14.3)와 읽기(그림 14.6)를 한 프로그램으로 완성하세요.
+// 이 파일은 그대로도 컴파일됩니다.
+#include &lt;iostream&gt;
+#include &lt;iomanip&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+using namespace std;
+
+void outputLine(int account, const string&amp; name, double balance)
+{
+    cout &lt;&lt; left &lt;&lt; setw(10) &lt;&lt; account &lt;&lt; setw(13) &lt;&lt; name
+         &lt;&lt; right &lt;&lt; setw(10) &lt;&lt; balance &lt;&lt; '\n';
+}
+
+int main()
+{
+    // ---- 1) 열기 모드 고르기 ----
+    char mode = ' ';
+    cout &lt;&lt; "mode (w = new file, a = append): ";
+    cin &gt;&gt; mode;
+    // TODO 1: mode가 'a'이면 ios::app, 아니면 ios::out 으로 clients.txt를 여는
+    //         ofstream outClientFile 을 만드세요.
+    // TODO 2: 열기에 실패하면 cerr에 "File could not be opened"를 출력하고 1을 돌려주세요.
+
+    // ---- 2) 파일 끝(Ctrl+Z)까지 입력해 파일에 쓰기 ----
+    cout &lt;&lt; "Enter the account, name, and balance.\n"
+         &lt;&lt; "Enter end-of-file to end input.\n? ";
+    int account = 0;
+    string name;
+    double balance = 0.0;
+    int written = 0;
+    // TODO 3: cin &gt;&gt; account &gt;&gt; name &gt;&gt; balance 가 성공하는 동안
+    //         한 줄씩 파일에 쓰고(공백으로 구분, 줄 끝 '\n'), written을 늘리고, "? "를 출력하세요.
+
+    // TODO 4: 읽기 전에 outClientFile을 닫으세요. (닫지 않으면 어떻게 되는지 02 토론 3에서 확인합니다.)
+    cout &lt;&lt; '\n' &lt;&lt; written &lt;&lt; " records written\n\n";
+
+    // ---- 3) 같은 파일을 처음부터 읽어 표로 출력 ----
+    // TODO 5: clients.txt를 입력용으로 여는 ifstream inClientFile 을 만들고 실패를 검사하세요.
+    cout &lt;&lt; left &lt;&lt; setw(10) &lt;&lt; "Account" &lt;&lt; setw(13) &lt;&lt; "Name"
+         &lt;&lt; right &lt;&lt; setw(10) &lt;&lt; "Balance" &lt;&lt; '\n';
+    cout &lt;&lt; fixed &lt;&lt; setprecision(2);
+
+    int count = 0;
+    double total = 0.0;
+    // TODO 6: 레코드를 끝까지 읽으며 outputLine으로 출력하고 count와 total을 구하세요.
+    //         while (!inClientFile.eof()) 형태는 쓰지 마세요.
+    cout &lt;&lt; count &lt;&lt; " records in file, total " &lt;&lt; total &lt;&lt; '\n';
+    return 0;
+}</pre>
+<p><b>확인할 것</b></p>
+<ul>
+<li><code>w</code>로 세 명을 입력한 뒤 다시 실행해 <code>a</code>로 두 명을 더 입력하세요. 두 번째 실행의 표가 다섯 줄인지 확인하고, 이번에는 <code>w</code>로 한 명만 입력하면 몇 줄이 되는지 적으세요.</li>
+<li>TODO 4의 <code>close()</code>를 지우고 실행하세요. 표가 어떻게 되는지, 프로그램이 끝난 뒤 <code>clients.txt</code>에는 무엇이 있는지 적고 토론 3과 비교하세요.</li>
+<li>이름에 공백을 넣어 <code>600 Kim Minsu 10.00</code>을 입력하면 어떻게 되는지 확인하고, 이론 10번과 연결해 설명하세요.</li>
+</ul>
+<p><b>예시 출력</b> — 첫 번째 실행(<code>w</code>, 세 명 입력, 마지막에 Ctrl+Z와 Enter)</p>
+<pre>mode (w = new file, a = append): w
+Enter the account, name, and balance.
+Enter end-of-file to end input.
+? 100 Jones 24.98
+? 200 Doe 345.67
+? 300 White 0.00
+? ^Z
+
+3 records written
+
+Account   Name            Balance
+100       Jones             24.98
+200       Doe              345.67
+300       White              0.00
+3 records in file, total 370.65</pre>
+<p>두 번째 실행(<code>a</code>, 두 명 더 입력)</p>
+<pre>mode (w = new file, a = append): a
+Enter the account, name, and balance.
+Enter end-of-file to end input.
+? 400 Stone -42.16
+? 500 Rich 224.62
+? ^Z
+
+2 records written
+
+Account   Name            Balance
+100       Jones             24.98
+200       Doe              345.67
+300       White              0.00
+400       Stone            -42.16
+500       Rich             224.62
+5 records in file, total 553.11</pre>
+<p><b>개념 보충</b> 파일 스트림은 <code>cin</code>·<code>cout</code>과 같은 클래스 계층에 있어서 <code>&gt;&gt;</code>, <code>&lt;&lt;</code>, <code>if (!파일)</code>이 그대로 동작합니다. 차이는 연결된 곳이 파일이라는 것과 열기 모드입니다. <code>ios::out</code>은 매번 새로 쓰고 <code>ios::app</code>은 끝에 쌓습니다. 쓰기와 읽기를 한 프로그램에서 하면 읽기 전에 쓰기 파일을 닫아 버퍼를 비워야 합니다.</p></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">실습</p>
+  <h3>문제 2 [중] — 신용 조회 프로그램 확장</h3>
+  <div class="md-body"><p><b>요구 사항</b></p>
+<ol>
+<li>슬라이드 19~26쪽의 신용 조회 프로그램을 바탕으로, <code>clients.txt</code>를 한 번 열어 두고 요청마다 파일을 처음부터 다시 읽어 조건에 맞는 레코드를 출력하세요. 파일은 문제 1이 만든 것이나 제공된 <code>src/task2/clients.txt</code>를 실행 폴더에 두고 씁니다.</li>
+<li>메뉴는 처음에 한 번 출력합니다. 1 잔액 0, 2 잔액 음수(credit), 3 잔액 양수(debit), 4 계좌번호로 찾기, 5 끝입니다.</li>
+<li>요청마다 <b><code>clear()</code>를 먼저, <code>seekg(0)</code>을 다음에</b> 호출해 되감으세요.</li>
+<li>요청 입력은 13장 방식으로 검사하세요. 숫자가 아니면 <code>Enter a number.</code>를 출력하고 <code>clear()</code> + <code>ignore</code>로 줄을 버립니다. 1~5 밖이면 <code>Enter 1 to 5.</code>를 출력하고 다시 묻습니다. 슬라이드 23쪽의 <code>&amp;&amp;</code> 조건은 <code>||</code>로 고쳐 씁니다.</li>
+<li>목록 요청은 제목 줄, 해당 레코드, <code>N shown</code>을 출력합니다. 찾기 요청은 계좌번호를 받아 그 레코드 한 줄을 출력하고, 없으면 <code>No account N</code>을 출력합니다.</li>
+<li>표 서식은 계좌번호 왼쪽 정렬 폭 10, 이름 왼쪽 정렬 폭 13, 잔액 오른쪽 정렬 폭 10에 소수 둘째 자리입니다.</li>
+</ol>
+<p><b>확인할 것</b></p>
+<ul>
+<li><code>inClientFile.clear();</code>를 지우고 1, 2를 차례로 요청하세요. 두 번째 요청의 결과를 적고 토론 6과 연결해 설명하세요.</li>
+<li>조건을 교재대로 <code>request &lt; ZERO_BALANCE &amp;&amp; request &gt; END</code>로 되돌리고 <code>0</code>을 입력하세요. 다시 묻지 않고 무엇이 출력되는지 적고 이론 15번과 비교하세요.</li>
+<li>찾기(4)에서 레코드를 찾으면 <code>break</code>로 반복을 끝내므로 스트림이 실패 상태가 아닙니다. 그래도 다음 요청 전에 <code>clear()</code>를 부르는 이유를, 찾지 못한 경우와 비교해 설명하세요.</li>
+</ul>
+<p><b>예시 출력</b> — 입력: <code>1</code>, <code>2</code>, <code>3</code>, <code>x</code>, <code>7</code>, <code>4</code>와 <code>400</code>, <code>4</code>와 <code>999</code>, <code>5</code></p>
+<pre>Enter request
+ 1 - List accounts with zero balances
+ 2 - List accounts with credit balances
+ 3 - List accounts with debit balances
+ 4 - Find an account
+ 5 - End of run
+? 1
+Accounts with zero balances:
+300       White              0.00
+1 shown
+? 2
+Accounts with credit balances:
+400       Stone            -42.16
+1 shown
+? 3
+Accounts with debit balances:
+100       Jones             24.98
+200       Doe              345.67
+500       Rich             224.62
+3 shown
+? x
+Enter a number.
+? 7
+Enter 1 to 5.
+? 4
+Account? 400
+400       Stone            -42.16
+? 4
+Account? 999
+No account 999
+? 5
+End of run.</pre>
+<p><b>개념 보충</b> 순차 파일은 원하는 레코드를 찾으려면 처음부터 읽어야 합니다. 같은 파일을 여러 번 훑을 때는 <code>clear()</code>로 이전 반복이 남긴 eofbit·failbit를 지우고 <code>seekg(0)</code>으로 되감는 두 단계가 한 묶음입니다. 사용자 입력 쪽에서는 13장의 <code>clear()</code> + <code>ignore</code> 복구를, 파일 쪽에서는 <code>clear()</code> + <code>seekg()</code> 되감기를 쓰는데, 둘 다 "상태를 먼저 되돌린다"는 같은 원칙입니다.</p></div>
+</div>
+<div class="md-card">
+  <p class="md-tag">실습</p>
+  <h3>문제 3 [상] — 인하항공 예약 프로그램과 파일 저장</h3>
+  <div class="md-body"><p>인하항공은 좌석 8개짜리 비행기 3대로 서울–부산을 운항합니다. 비행기마다 하루 한 번(7시, 12시, 17시) 뜹니다. 예약·취소·보기 기능을 가진 프로그램을 클래스로 만들고, 예약 상태를 순차 파일에 저장해 <b>프로그램을 다시 실행해도 예약이 남게</b> 하세요.</p>
+<p><b>요구 사항</b></p>
+<ol>
+<li>클래스는 세 개입니다. 헤더 파일은 <code>#pragma once</code>로 시작합니다.</li>
+<li><code>Seat</code>(<code>Seat.h</code>)는 예약자 이름 하나를 가집니다(빈 문자열 = 빈 좌석). <code>book(name)</code>은 빈 좌석일 때만, <code>cancel(name)</code>은 예약자 이름이 같을 때만 성공하고 <code>true</code>를 돌려줍니다.</li>
+<li><code>Schedule</code>(<code>Schedule.h</code>)은 출발 시각 문자열(<code>"07"</code>)과 <code>Seat</code> 8개를 가집니다. <code>book(seatNo, name)</code>, <code>cancel(seatNo, name)</code>(좌석 번호 1~8), 화면용 <code>show(ostream&amp;)</code>, 파일용 <code>save(ostream&amp;)</code>을 둡니다.</li>
+<li><code>Schedule::save</code>는 예약된 좌석마다 <code>시각 좌석번호 이름</code> 한 줄(예: <code>07 3 Kim</code>)을 씁니다. <code>show</code>는 <code>07:00</code> 다음에 좌석마다 <code>번호:이름</code>(빈 좌석은 <code>-</code>)을 폭 5칸에 맞춰 한 줄로 출력합니다. 모양은 아래 예시 출력을 보세요.</li>
+<li><code>AirlineBook</code>(<code>AirlineBook.h</code>)은 항공사 이름, 저장 파일 이름, <code>Schedule</code> 3개를 가지고 메뉴를 돌립니다. 메뉴는 <code>1:book 2:cancel 3:view 4:quit &gt; </code>입니다.</li>
+<li><b>시작할 때</b> 저장 파일이 있으면 <code>ifstream</code>으로 한 줄씩 읽어 예약을 되살리고 <code>(N bookings loaded from booking.txt)</code>를 출력하세요. 파일이 없으면 <code>(no saved bookings)</code>입니다.</li>
+<li><b>예약이나 취소가 성공할 때마다</b> <code>ofstream</code>을 <code>ios::out</code>으로 열어 파일 <b>전체를 다시 쓰세요</b>. 한 줄만 고치지 않는 이유는 14.5와 토론 7에서 확인한 그대로입니다.</li>
+<li>숫자 입력은 13장 방식으로 검사합니다(숫자가 아니면 <code>Enter a number.</code> 후 다시 묻기). 없는 비행편이면 <code>No such flight.</code>, 예약·취소가 안 되면 <code>Cannot book seat N on 07:00.</code>처럼 출력합니다.</li>
+<li><code>main</code>은 아래 세 줄이면 되도록 만드세요.</li>
+</ol>
+<pre>const std::string times[AirlineBook::FLIGHTS] = { "07", "12", "17" };
+AirlineBook book("Inha Air", times, "booking.txt");
+book.run();</pre>
+<p><b>확인할 것</b></p>
+<ul>
+<li>첫 실행에서 예약 3건을 하고 끝낸 뒤 <code>booking.txt</code>를 메모장으로 열어 내용을 적으세요. 두 번째 실행에서 불러온 건수와 보기(3) 결과가 첫 실행 마지막과 같은지 확인하세요.</li>
+<li>취소한 뒤 <code>booking.txt</code>가 몇 줄이 되는지 확인하고, 파일 전체를 다시 쓰는 코드가 어디인지 짚어 설명하세요.</li>
+<li><code>save()</code>의 열기 모드를 <code>ios::app</code>으로 바꾸면 여러 번 예약·취소한 뒤 다시 실행했을 때 무엇이 잘못되는지 예측하고 실행해 확인하세요(토론 1과 비교).</li>
+<li>확장 시험: 비행편을 하나(<code>"21"</code>) 더 추가하려면 기존 코드를 몇 줄 고쳐야 하는지 세어 적으세요.</li>
+</ul>
+<p><b>예시 출력</b> — 첫 실행(<code>booking.txt</code> 없음)</p>
+<pre>***** Inha Air reservation *****
+(no saved bookings)
+1:book 2:cancel 3:view 4:quit &gt; 1
+flight 1:07:00 2:12:00 3:17:00 &gt; 1
+name &gt; Kim
+seat (1-8) &gt; 3
+Booked: 07:00 seat 3 Kim
+1:book 2:cancel 3:view 4:quit &gt; 1
+flight 1:07:00 2:12:00 3:17:00 &gt; 2
+name &gt; Lee
+seat (1-8) &gt; 3
+Booked: 12:00 seat 3 Lee
+1:book 2:cancel 3:view 4:quit &gt; 1
+flight 1:07:00 2:12:00 3:17:00 &gt; 1
+name &gt; Park
+seat (1-8) &gt; 3
+Cannot book seat 3 on 07:00.
+1:book 2:cancel 3:view 4:quit &gt; 1
+flight 1:07:00 2:12:00 3:17:00 &gt; 3
+name &gt; Choi
+seat (1-8) &gt; 8
+Booked: 17:00 seat 8 Choi
+1:book 2:cancel 3:view 4:quit &gt; 3
+07:00  1:-     2:-     3:Kim   4:-     5:-     6:-     7:-     8:-
+12:00  1:-     2:-     3:Lee   4:-     5:-     6:-     7:-     8:-
+17:00  1:-     2:-     3:-     4:-     5:-     6:-     7:-     8:Choi
+1:book 2:cancel 3:view 4:quit &gt; 4
+Bye.</pre>
+<p>이때 <code>booking.txt</code>의 내용입니다.</p>
+<pre>07 3 Kim
+12 3 Lee
+17 8 Choi</pre>
+<p>두 번째 실행(위 파일이 있는 상태에서 보기 → 취소 → 보기)</p>
+<pre>***** Inha Air reservation *****
+(3 bookings loaded from booking.txt)
+1:book 2:cancel 3:view 4:quit &gt; 3
+07:00  1:-     2:-     3:Kim   4:-     5:-     6:-     7:-     8:-
+12:00  1:-     2:-     3:Lee   4:-     5:-     6:-     7:-     8:-
+17:00  1:-     2:-     3:-     4:-     5:-     6:-     7:-     8:Choi
+1:book 2:cancel 3:view 4:quit &gt; 2
+flight 1:07:00 2:12:00 3:17:00 &gt; 1
+name &gt; Park
+seat (1-8) &gt; 3
+Cannot cancel seat 3 on 07:00.
+1:book 2:cancel 3:view 4:quit &gt; 2
+flight 1:07:00 2:12:00 3:17:00 &gt; 1
+name &gt; Kim
+seat (1-8) &gt; 3
+Canceled: 07:00 seat 3 Kim
+1:book 2:cancel 3:view 4:quit &gt; 3
+07:00  1:-     2:-     3:-     4:-     5:-     6:-     7:-     8:-
+12:00  1:-     2:-     3:Lee   4:-     5:-     6:-     7:-     8:-
+17:00  1:-     2:-     3:-     4:-     5:-     6:-     7:-     8:Choi
+1:book 2:cancel 3:view 4:quit &gt; 4
+Bye.</pre>
+<p><b>개념 보충</b> 객체의 상태는 프로그램이 끝나면 사라집니다. 그래서 시작할 때 파일에서 읽어 객체를 되살리고, 바뀔 때마다 파일에 다시 씁니다. 텍스트 순차 파일은 레코드 길이가 제각각이라 한 줄만 제자리에서 고칠 수 없으므로, 파일 전체를 새로 쓰는 것이 가장 단순하고 안전합니다. 저장 형식(<code>시각 좌석 이름</code>)은 쓰는 쪽(<code>save</code>)과 읽는 쪽(<code>load</code>)이 같은 약속을 지켜야 하고, 이름에 공백이 없어야 한다는 것도 그 약속의 일부입니다.</p></div>
+</div>
+  </section>
+
+  <footer>
+    <p class="navback"><a href="../">← 전체 주차 목록으로</a></p>
+  </footer>
+</main>
+
+<script>
+document.querySelectorAll('.qcard').forEach(function(card){
+  var ans = card.getAttribute('data-ans');
+  var fb = card.querySelector('.feedback');
+  card.querySelectorAll('.opt').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      if (card.classList.contains('done')) return;
+      var k = btn.getAttribute('data-k');
+      if (k === ans) {
+        btn.classList.add('mark-correct');
+        fb.textContent = '정답입니다.';
+        fb.className = 'feedback ok';
+        fb.hidden = false;
+        card.classList.add('done');
+      } else {
+        btn.classList.add('mark-wrong');
+        fb.textContent = '다시 — 해설을 보고 판단해 보세요.';
+        fb.className = 'feedback no';
+        fb.hidden = false;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
